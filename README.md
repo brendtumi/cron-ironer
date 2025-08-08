@@ -1,7 +1,7 @@
 # Cron Ironer
 
 [![npm version](https://img.shields.io/npm/v/cron-ironer)](https://www.npmjs.com/package/cron-ironer)
-![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/your-org/cron-ironer/ci.yml?branch=main)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/brendtumi/cron-ironer/ci.yml?branch=main)
 
 Cron Ironer parses cron schedules, renders 24-hour heatmaps as ASCII or JPEG, and can suggest evenly distributed alternatives.
 
