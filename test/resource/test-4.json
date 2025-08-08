@@ -1,0 +1,61 @@
+[
+  {
+    "name": "job_36aeffb9",
+    "description": "word518 word838 word616 word940 word367 word362 word581 word489",
+    "schedule": "55 */12 * * *",
+    "estimation": 1483
+  },
+  {
+    "name": "job_43c237f1",
+    "description": "word553 word282 word326 word326 word445 word701 word621 word413 word808",
+    "schedule": "05 1,13 * * *",
+    "estimation": 1129
+  },
+  {
+    "name": "job_233233e5",
+    "description": "word362 word906 word209 word483 word401 word504 word857 word327 word464 word829 word764 word624 word428 word357",
+    "schedule": "40 */12 * * *",
+    "estimation": 360
+  },
+  {
+    "name": "job_87cee9c8",
+    "description": "word410 word989 word722 word257 word514 word965 word301",
+    "schedule": "0 */4 * * *",
+    "estimation": 1012
+  },
+  {
+    "name": "job_cd484791",
+    "description": "word899 word756 word849 word973",
+    "schedule": "0 1 * * *",
+    "estimation": 4823
+  },
+  {
+    "name": "job_0d0ebb53",
+    "description": "word560 word213 word181 word519 word810 word921 word122 word181 word616 word227 word259 word785 word207",
+    "schedule": "45 * * * *",
+    "estimation": 480
+  },
+  {
+    "name": "job_4fdfc8eb",
+    "description": "word610 word350 word735 word702 word620 word189 word934 word776 word590",
+    "schedule": "0 1 19,20,21 3 *",
+    "estimation": 6810
+  },
+  {
+    "name": "job_27e6cd33",
+    "schedule": "*/30 * * * *",
+    "estimation": 89
+  },
+  {
+    "name": "job_b77acd9e",
+    "description": "word540 word673 word100 word460 word686 word532",
+    "schedule": "*/15 * * * *",
+    "estimation": 80
+  },
+  {
+    "name": "job_c9096662",
+    "description": "word647 word862 word800 word228",
+    "schedule": "*/15 * * * *",
+    "estimation": 69
+  }
+]
