@@ -11,6 +11,7 @@ export default defineConfig({
         'dist/**',
         'vitest.config.mjs',
         'eslint.config.mjs',
+        'scripts/**',
       ],
     },
   },

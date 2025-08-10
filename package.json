@@ -1,6 +1,6 @@
 {
   "name": "cron-ironer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "CLI to parse cron schedules, render heatmaps, and suggest evenly distributed alternatives",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -28,7 +28,8 @@
     "test": "vitest run --coverage",
     "prepare": "npm run build",
     "dev": "ts-node src/cli.ts",
-    "generate:outputs": "node scripts/generate-outputs.js"
+    "generate:test-resources": "node scripts/generate-test-resources.js",
+    "preversion": "npm run test && npm run lint"
   },
   "keywords": [
     "cron",
