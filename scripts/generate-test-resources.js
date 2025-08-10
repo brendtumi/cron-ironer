@@ -23,7 +23,7 @@ function main() {
   }
   const files = fs
     .readdirSync(INPUT_DIR)
-    .filter((f) => /^test-.*\.json$/i.test(f))
+    .filter((f) => /^test-\d\.(json|yaml)$/i.test(f))
     .map((f) => path.join('test', 'resource', f))
     .sort();
 
