@@ -28,7 +28,8 @@
     "test": "vitest run --coverage",
     "prepare": "npm run build",
     "dev": "ts-node src/cli.ts",
-    "generate:test-resources": "node scripts/generate-test-resources.js"
+    "generate:test-resources": "node scripts/generate-test-resources.js",
+    "preversion": "npm run test && npm run lint"
   },
   "keywords": [
     "cron",
