@@ -212,6 +212,7 @@ export default function suggestAggressiveSpread(jobs: Job[]): Job[] {
 
   const density = Array(MINUTES_PER_DAY).fill(0);
   const startDensity = Array(MINUTES_PER_DAY).fill(0);
+  const hourDensity = Array(24).fill(0);
   const hourStepUsage: Record<string, number[]> = {};
   const dailyHourUsage = Array(24).fill(0);
   const groupUsage: Record<string, Set<number>> = {};
@@ -295,7 +296,9 @@ export default function suggestAggressiveSpread(jobs: Job[]): Job[] {
       density[idx] += 1;
     });
     startTimesMap[job.name].forEach((start) => {
-      startDensity[normalizeMinute(start)] += 1;
+      const normalizedStart = normalizeMinute(start);
+      startDensity[normalizedStart] += 1;
+      hourDensity[Math.floor(normalizedStart / 60)] += 1;
     });
     registerUsage(job);
     const descriptor = descriptorMap[job.name];
@@ -387,6 +390,7 @@ export default function suggestAggressiveSpread(jobs: Job[]): Job[] {
       starts.forEach((start) => {
         const normalizedStart = normalizeMinute(start);
         total += startDensity[normalizedStart];
+        total += hourDensity[Math.floor(normalizedStart / 60)];
         for (let k = 0; k < duration; k += 1) {
           total += density[normalizeMinute(start + k)];
         }
@@ -509,7 +513,9 @@ export default function suggestAggressiveSpread(jobs: Job[]): Job[] {
         density[idx] += 1;
       });
       startTimesMap[job.name].forEach((start) => {
-        startDensity[normalizeMinute(start)] += 1;
+        const normalizedStart = normalizeMinute(start);
+        startDensity[normalizedStart] += 1;
+        hourDensity[Math.floor(normalizedStart / 60)] += 1;
       });
       applyUsage(initialPhase);
       return;
@@ -523,7 +529,9 @@ export default function suggestAggressiveSpread(jobs: Job[]): Job[] {
     coverageMap[job.name] = finalSlots;
     startTimesMap[job.name] = bestStarts;
     bestStarts.forEach((start) => {
-      startDensity[normalizeMinute(start)] += 1;
+      const normalizedStart = normalizeMinute(start);
+      startDensity[normalizedStart] += 1;
+      hourDensity[Math.floor(normalizedStart / 60)] += 1;
     });
     applyUsage(bestPhase);
     if (groupId) used.add(bestPhase);
