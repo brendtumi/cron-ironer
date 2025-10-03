@@ -25,7 +25,7 @@
   {
     "name": "job_2044d089",
     "description": "word944 word154 word971 word556 word366 word491 word902",
-    "schedule": "0 13 * * *",
+    "schedule": "0 2 * * *",
     "estimation": 6908
   },
   {
@@ -42,7 +42,7 @@
   {
     "name": "job_625ccdff",
     "description": "word935 word832 word772 word599 word638 word488 word753 word637 word288 word473 word286 word316 word448 word613 word383 word180 word712 word906",
-    "schedule": "0 2 * * *",
+    "schedule": "0 4 * * *",
     "estimation": 4221
   },
   {
@@ -54,7 +54,7 @@
   {
     "name": "job_6f9fba8f",
     "description": "word204 word546 word568 word306 word977 word929 word426 word812 word891 word630 word612 word143",
-    "schedule": "0 */2 * * *",
+    "schedule": "0 1/2 * * *",
     "estimation": 1365
   }
 ]
