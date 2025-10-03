@@ -1,6 +1,6 @@
 {
   "name": "cron-ironer",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "CLI to parse cron schedules, render heatmaps, and suggest evenly distributed alternatives",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

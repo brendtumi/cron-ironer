@@ -12,6 +12,7 @@ import {
   renderAscii,
   renderImage,
   suggestSpread,
+  suggestAggressiveSpread,
   Job,
 } from './index';
 
@@ -42,7 +43,15 @@ program
   .option('--format <yaml|json|text>', 'infer by extension')
   .option('--image', 'write JPEG heatmap instead of ASCII')
   .option('--suggest')
-  .option('--reflect-duration')
+  .option(
+    '--optimizer <offset|greedy>',
+    'schedule optimizer algorithm',
+    'offset',
+  )
+  .option(
+    '--reflect-duration',
+    'Use job estimation (in seconds) when drawing heatmap',
+  )
   .option('-o, --out-file <path>')
   .parse(process.argv);
 
@@ -52,12 +61,14 @@ const {
   reflectDuration,
   outFile,
   suggest,
+  optimizer: optimizerOpt,
 } = program.opts();
 const inputFile = program.args[0];
 if (!inputFile) program.error('Input file required');
 const format = formatOpt || inferFormat(inputFile);
 const outputImage = Boolean(imageOpt);
 const reflect = Boolean(reflectDuration);
+const optimizer = (optimizerOpt || 'offset') as string;
 
 const jobs = loadJobs(inputFile, format);
 
@@ -84,6 +95,7 @@ function writeImage(matrix: number[][], suffix = '') {
   let finalSuffix = suffix;
   if (suggest) finalSuffix = `${finalSuffix}.suggested`;
   if (reflect) finalSuffix = `${finalSuffix}.reflect`;
+  if (optimizer) finalSuffix = `${finalSuffix}.${optimizer}`;
   const target = addSuffix(replaceExt(base, '.jpg'), finalSuffix);
   const buffer = renderImage(matrix);
   fs.writeFileSync(target, buffer);
@@ -92,10 +104,16 @@ function writeImage(matrix: number[][], suffix = '') {
 const matrix = buildMatrix(jobs, reflect);
 
 if (suggest) {
+  if (optimizer !== 'offset' && optimizer !== 'greedy') {
+    program.error(`Unknown optimizer: ${optimizer}`);
+  }
   if (!outputImage) writeAscii(matrix, '.before');
   writeImage(matrix, '.before');
 
-  const suggested = suggestSpread(jobs);
+  const suggested =
+    optimizer === 'greedy'
+      ? suggestAggressiveSpread(jobs)
+      : suggestSpread(jobs);
   let suggestedContent = '';
   if (format === 'yaml') suggestedContent = yaml.stringify(suggested);
   else if (format === 'json')
