@@ -73,13 +73,17 @@ Output snippet (`test/resource/test-1.suggested.json`):
 
 Heatmaps:
 
-Before optimization, jobs cluster in a few dark bands:
+Before optimization, jobs cluster in a few dark bands (330 Cron Jobs):
 
 ![Heatmap before optimization showing concentrated load](test/resource/test-1.before.suggested.jpg)
 
-After optimization, the schedule spreads jobs evenly across the day:
+After optimization, the schedule spreads jobs evenly across the day (330 Cron Jobs):
 
 ![Heatmap after optimization showing even distribution](test/resource/test-1.after.suggested.jpg)
+
+With the `greedy` optimizer, the schedule is more evenly distributed (330 Cron Jobs):
+
+![Heatmap after optimization showing even distribution_with_greedy](test/resource/test-1.after.suggested.reflect.greedy.jpg)
 
 ### Optimizer algorithms
 
@@ -136,13 +140,18 @@ Running the command produces:
 
 Weighted heatmaps:
 
-Before optimization, long jobs create heavy bands:
+Before optimization, long jobs create heavy bands (10 Cron Jobs):
 
 ![Heatmap before optimization weighted by job duration](test/resource/test-4.before.suggested.reflect.jpg)
 
-After optimization, load spreads while respecting job length:
+After optimization, load spreads while respecting job length (10 Cron Jobs):
 
 ![Heatmap after optimization weighted by job duration](test/resource/test-4.after.suggested.reflect.jpg)
+
+With the `greedy` optimizer, the schedule is more evenly distributed (10 Cron Jobs):
+
+![Heatmap after optimization weighted by job duration_with_greedy](test/resource/test-4.after.suggested.reflect.greedy.jpg)
+
 
 ### Heatmap interpretation
 
