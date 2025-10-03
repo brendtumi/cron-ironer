@@ -211,6 +211,9 @@ export default function suggestAggressiveSpread(jobs: Job[]): Job[] {
   };
 
   const density = Array(MINUTES_PER_DAY).fill(0);
+  const startDensity = Array(MINUTES_PER_DAY).fill(0);
+  const hourStepUsage: Record<string, number[]> = {};
+  const dailyHourUsage = Array(24).fill(0);
   const groupUsage: Record<string, Set<number>> = {};
   const coverageMap: Record<string, number[]> = {};
   const startTimesMap: Record<string, number[]> = {};
@@ -291,7 +294,27 @@ export default function suggestAggressiveSpread(jobs: Job[]): Job[] {
     coverageMap[job.name].forEach((idx) => {
       density[idx] += 1;
     });
+    startTimesMap[job.name].forEach((start) => {
+      startDensity[normalizeMinute(start)] += 1;
+    });
     registerUsage(job);
+    const descriptor = descriptorMap[job.name];
+    if (descriptor && descriptor.kind === 'hour-step') {
+      const groupId = getGroupId(descriptor);
+      if (groupId) {
+        if (!hourStepUsage[groupId]) {
+          hourStepUsage[groupId] = Array(descriptor.step).fill(0);
+        }
+        const phase = getHourStepPhase(job.schedule, descriptor.step);
+        if (phase !== null) {
+          const base = Math.floor(phase / 60) % descriptor.step;
+          hourStepUsage[groupId][base] += 1;
+        }
+      }
+    } else if (descriptor && descriptor.kind === 'daily') {
+      const hour = Math.floor(descriptor.hour) % 24;
+      dailyHourUsage[hour] += 1;
+    }
   });
 
   const getDuration = (job: Job): number => {
@@ -323,14 +346,47 @@ export default function suggestAggressiveSpread(jobs: Job[]): Job[] {
       ? (groupUsage[groupId] ?? new Set<number>())
       : new Set<number>();
     if (groupId && !groupUsage[groupId]) groupUsage[groupId] = used;
+    if (descriptor.kind === 'hour-step' && groupId && !hourStepUsage[groupId]) {
+      hourStepUsage[groupId] = Array(descriptor.step).fill(0);
+    }
 
     const duration = getDuration(job);
     const initialSlots = coverageMap[job.name];
     const initialStarts = startTimesMap[job.name];
 
+    const getUsageCost = (phase: number | null): number => {
+      if (phase === null) return 0;
+      if (descriptor.kind === 'hour-step' && groupId) {
+        const usage = hourStepUsage[groupId];
+        if (!usage) return 0;
+        const base = Math.floor(phase / 60) % descriptor.step;
+        return usage[base];
+      }
+      if (descriptor.kind === 'daily') {
+        const hour = Math.floor(phase / 60) % 24;
+        return dailyHourUsage[hour];
+      }
+      return 0;
+    };
+
+    const applyUsage = (phase: number | null) => {
+      if (phase === null) return;
+      if (descriptor.kind === 'hour-step' && groupId) {
+        const usage = hourStepUsage[groupId];
+        if (!usage) return;
+        const base = Math.floor(phase / 60) % descriptor.step;
+        usage[base] += 1;
+      } else if (descriptor.kind === 'daily') {
+        const hour = Math.floor(phase / 60) % 24;
+        dailyHourUsage[hour] += 1;
+      }
+    };
+
     const scoreFromStarts = (starts: number[]): number => {
       let total = 0;
       starts.forEach((start) => {
+        const normalizedStart = normalizeMinute(start);
+        total += startDensity[normalizedStart];
         for (let k = 0; k < duration; k += 1) {
           total += density[normalizeMinute(start + k)];
         }
@@ -352,16 +408,21 @@ export default function suggestAggressiveSpread(jobs: Job[]): Job[] {
     let bestStarts = initialStarts;
     let bestSlots: number[] | null = initialSlots;
     let bestPhase = initialPhase;
-    let bestScore = initialSlots.reduce((acc, idx) => acc + density[idx], 0);
+    let bestScore =
+      (initialStarts.length > 0
+        ? scoreFromStarts(initialStarts)
+        : initialSlots.reduce((acc, idx) => acc + density[idx], 0)) +
+      getUsageCost(initialPhase);
     let bestPenalty = bestPhase !== null && used.has(bestPhase) ? 1 : 0;
 
     const considerCandidate = (
       schedule: string,
       phase: number,
       starts: number[],
+      extraCost = 0,
     ) => {
       if (starts.length === 0) return;
-      const score = scoreFromStarts(starts);
+      const score = scoreFromStarts(starts) + extraCost;
       const penalty = used.has(phase) ? 1 : 0;
       if (
         score < bestScore ||
@@ -426,7 +487,8 @@ export default function suggestAggressiveSpread(jobs: Job[]): Job[] {
         for (let hour = base; hour < 24; hour += descriptor.step) {
           starts.push(hour * 60 + minute);
         }
-        considerCandidate(schedule, phase, starts);
+        const extraCost = getUsageCost(phase);
+        considerCandidate(schedule, phase, starts, extraCost);
         if (bestScore === 0 && bestPenalty === 0) break;
       }
     } else if (descriptor.kind === 'daily') {
@@ -435,7 +497,8 @@ export default function suggestAggressiveSpread(jobs: Job[]): Job[] {
         const hour = (descriptor.hour + delta) % 24;
         const schedule = `${minute} ${hour} ${descriptor.tail}`;
         const phase = hour * 60 + minute;
-        considerCandidate(schedule, phase, [phase]);
+        const extraCost = getUsageCost(phase);
+        considerCandidate(schedule, phase, [phase], extraCost);
         if (bestScore === 0 && bestPenalty === 0) break;
       }
     }
@@ -445,6 +508,10 @@ export default function suggestAggressiveSpread(jobs: Job[]): Job[] {
       coverageMap[job.name].forEach((idx) => {
         density[idx] += 1;
       });
+      startTimesMap[job.name].forEach((start) => {
+        startDensity[normalizeMinute(start)] += 1;
+      });
+      applyUsage(initialPhase);
       return;
     }
 
@@ -455,6 +522,10 @@ export default function suggestAggressiveSpread(jobs: Job[]): Job[] {
     });
     coverageMap[job.name] = finalSlots;
     startTimesMap[job.name] = bestStarts;
+    bestStarts.forEach((start) => {
+      startDensity[normalizeMinute(start)] += 1;
+    });
+    applyUsage(bestPhase);
     if (groupId) used.add(bestPhase);
   });
 
