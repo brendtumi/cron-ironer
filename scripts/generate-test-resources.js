@@ -1,17 +1,17 @@
 #!/usr/bin/env node
-const { execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
 const INPUT_DIR = path.join(ROOT, 'test', 'resource');
 
-function run(cmd, options = {}) {
-  console.log(`$ ${cmd}`);
+function run(command, args, options = {}) {
+  console.log(`$ ${[command, ...args].map(a => JSON.stringify(a)).join(' ')}`);
   try {
-    execSync(cmd, { stdio: 'inherit', cwd: ROOT, ...options });
+    execFileSync(command, args, { stdio: 'inherit', cwd: ROOT, ...options });
   } catch (err) {
-    console.error(`Command failed: ${cmd}`);
+    console.error(`Command failed: ${[command, ...args].join(' ')}`);
     process.exitCode = 1;
   }
 }
@@ -34,13 +34,13 @@ function main() {
 
   for (const rel of files) {
     // 1) --image
-    run(`npm run -s dev -- ${rel} --image`);
+    run('npm', ['run', '-s', 'dev', '--', rel, '--image']);
     // 2) --image --suggest
-    run(`npm run -s dev -- ${rel} --image --suggest`);
+    run('npm', ['run', '-s', 'dev', '--', rel, '--image', '--suggest']);
     // 3) --image --reflect-duration
-    run(`npm run -s dev -- ${rel} --image --reflect-duration`);
+    run('npm', ['run', '-s', 'dev', '--', rel, '--image', '--reflect-duration']);
     // 4) --image --suggest --reflect-duration
-    run(`npm run -s dev -- ${rel} --image --suggest --reflect-duration`);
+    run('npm', ['run', '-s', 'dev', '--', rel, '--image', '--suggest', '--reflect-duration']);
   }
 }
 
