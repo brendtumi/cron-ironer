@@ -34,7 +34,7 @@ describe('cli', () => {
       base,
     ]);
     expect(result.status).toBe(0);
-    const expected = path.join(dir, 'heat.reflect.jpg');
+    const expected = path.join(dir, 'heat.reflect.offset.jpg');
     expect(existsSync(expected)).toBe(true);
     rmSync(dir, { recursive: true, force: true });
   }, 20000);
@@ -67,8 +67,8 @@ describe('cli', () => {
       base,
     ]);
     expect(result.status).toBe(0);
-    const expectedBefore = path.join(dir, 'heat.before.suggested.jpg');
-    const expectedAfter = path.join(dir, 'heat.after.suggested.jpg');
+    const expectedBefore = path.join(dir, 'heat.before.suggested.offset.jpg');
+    const expectedAfter = path.join(dir, 'heat.after.suggested.offset.jpg');
     expect(existsSync(expectedBefore)).toBe(true);
     expect(existsSync(expectedAfter)).toBe(true);
     rmSync(dir, { recursive: true, force: true });
@@ -103,8 +103,14 @@ describe('cli', () => {
       base,
     ]);
     expect(result.status).toBe(0);
-    const expectedBefore = path.join(dir, 'heat.before.suggested.reflect.jpg');
-    const expectedAfter = path.join(dir, 'heat.after.suggested.reflect.jpg');
+    const expectedBefore = path.join(
+      dir,
+      'heat.before.suggested.reflect.offset.jpg',
+    );
+    const expectedAfter = path.join(
+      dir,
+      'heat.after.suggested.reflect.offset.jpg',
+    );
     expect(existsSync(expectedBefore)).toBe(true);
     expect(existsSync(expectedAfter)).toBe(true);
     rmSync(dir, { recursive: true, force: true });
