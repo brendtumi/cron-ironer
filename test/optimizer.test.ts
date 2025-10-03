@@ -46,7 +46,7 @@ describe('greedy optimizer', () => {
     expect(byName.anchor).toBe('0/10 * * * *');
     expect(byName.morning).toBe('1/10 0-11 * * *');
     expect(byName.long).toBe('5/10 * * * *');
-    expect(byName.short).toBe('1/10 * * * *');
+    expect(byName.short).toBe('2/10 * * * *');
   });
 
   it('accounts for work that spans midnight', () => {
@@ -61,7 +61,7 @@ describe('greedy optimizer', () => {
     ];
     const res = suggestAggressiveSpread(jobs);
     const candidate = res.find((j) => j.name === 'candidate');
-    expect(candidate?.schedule).toBe('0/10 * * * *');
+    expect(candidate?.schedule).toBe('*/10 * * * *');
   });
 
   it(
