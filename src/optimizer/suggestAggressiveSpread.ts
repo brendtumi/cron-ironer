@@ -22,7 +22,10 @@ function normalizeMinute(idx: number): number {
   return value;
 }
 
-function parseStep(field: string, limit: number): { base: number; step: number } | null {
+function parseStep(
+  field: string,
+  limit: number,
+): { base: number; step: number } | null {
   const m = field.match(STEP_REGEX);
   if (!m) return null;
   const [, baseStr, stepStr] = m;
@@ -43,7 +46,14 @@ function parseHourStep(field: string): { base: number; step: number } | null {
   const end = Number(endStr);
   const step = Number(stepStr);
   if ([start, end, step].some((value) => Number.isNaN(value))) return null;
-  if (step <= 0 || start < 0 || end < 0 || start > 23 || end > 23 || start > end) {
+  if (
+    step <= 0 ||
+    start < 0 ||
+    end < 0 ||
+    start > 23 ||
+    end > 23 ||
+    start > end
+  ) {
     return null;
   }
   return { base: start % step, step };
@@ -63,7 +73,11 @@ function describeJob(job: Job): JobDescriptor {
   const tail = tailParts.join(' ');
   const minuteStep = parseStep(minute, 59);
   if (minuteStep) {
-    return { kind: 'minute-step', step: minuteStep.step, rest: `${hour} ${tail}` };
+    return {
+      kind: 'minute-step',
+      step: minuteStep.step,
+      rest: `${hour} ${tail}`,
+    };
   }
 
   const minuteValue = parseNumber(minute, 59);
@@ -232,7 +246,11 @@ export default function suggestAggressiveSpread(jobs: Job[]): Job[] {
     descriptorMap[job.name] = descriptor;
     coverageMap[job.name] = getSlots(job.schedule, job.estimation);
     startTimesMap[job.name] = getStartSlots(job.schedule);
-    if (job.keepTime || descriptor.kind === 'fixed' || startTimesMap[job.name].length === 0) {
+    if (
+      job.keepTime ||
+      descriptor.kind === 'fixed' ||
+      startTimesMap[job.name].length === 0
+    ) {
       fixed.push(job);
     } else {
       movable.push(job);
@@ -258,7 +276,8 @@ export default function suggestAggressiveSpread(jobs: Job[]): Job[] {
     const [minuteField, hourField] = parts;
     const minuteValue = parseNumber(minuteField, 59);
     const hourInfo = parseHourStep(hourField);
-    if (minuteValue === null || !hourInfo || hourInfo.step !== step) return null;
+    if (minuteValue === null || !hourInfo || hourInfo.step !== step)
+      return null;
     return (hourInfo.base % step) * 60 + minuteValue;
   };
 
@@ -322,7 +341,9 @@ export default function suggestAggressiveSpread(jobs: Job[]): Job[] {
     }
 
     const groupId = getGroupId(descriptor);
-    const used = groupId ? groupUsage[groupId] ?? new Set<number>() : new Set<number>();
+    const used = groupId
+      ? (groupUsage[groupId] ?? new Set<number>())
+      : new Set<number>();
     if (groupId && !groupUsage[groupId]) groupUsage[groupId] = used;
 
     let bestSchedule = job.schedule;
@@ -341,7 +362,8 @@ export default function suggestAggressiveSpread(jobs: Job[]): Job[] {
         (score === bestScore &&
           (penalty < bestPenalty ||
             (penalty === bestPenalty &&
-              (bestPhase === null || phase < bestPhase ||
+              (bestPhase === null ||
+                phase < bestPhase ||
                 (phase === bestPhase && schedule < bestSchedule)))))
       ) {
         bestScore = score;
@@ -354,14 +376,22 @@ export default function suggestAggressiveSpread(jobs: Job[]): Job[] {
 
     if (descriptor.kind === 'minute-step') {
       const limit = Math.min(descriptor.step, 60);
-      for (let offset = 0; offset < limit && offset < descriptor.step; offset += 1) {
+      for (
+        let offset = 0;
+        offset < limit && offset < descriptor.step;
+        offset += 1
+      ) {
         const schedule = `${offset}/${descriptor.step} ${descriptor.rest}`;
         considerCandidate(schedule, offset % descriptor.step);
         if (bestScore === 0 && bestPenalty === 0) break;
       }
     } else if (descriptor.kind === 'hour-step') {
       for (let base = 0; base < descriptor.step; base += 1) {
-        const hourField = formatHourField(base, descriptor.step, descriptor.hourField);
+        const hourField = formatHourField(
+          base,
+          descriptor.step,
+          descriptor.hourField,
+        );
         for (let minute = 0; minute < 60; minute += 1) {
           const schedule = `${minute} ${hourField} ${descriptor.tail}`;
           const phase = base * 60 + minute;

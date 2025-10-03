@@ -93,7 +93,12 @@ You can mark a job with `keepTime: true` to prevent optimizers from shifting it.
 
 ```json
 [
-  { "name": "critical_sync", "schedule": "0/5 * * * *", "estimation": 600, "keepTime": true },
+  {
+    "name": "critical_sync",
+    "schedule": "0/5 * * * *",
+    "estimation": 600,
+    "keepTime": true
+  },
   { "name": "background_cleanup", "schedule": "*/5 * * * *", "estimation": 120 }
 ]
 ```

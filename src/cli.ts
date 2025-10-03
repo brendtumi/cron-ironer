@@ -43,8 +43,15 @@ program
   .option('--format <yaml|json|text>', 'infer by extension')
   .option('--image', 'write JPEG heatmap instead of ASCII')
   .option('--suggest')
-  .option('--optimizer <offset|greedy>', 'schedule optimizer algorithm', 'offset')
-  .option('--reflect-duration', 'Use job estimation (in seconds) when drawing heatmap')
+  .option(
+    '--optimizer <offset|greedy>',
+    'schedule optimizer algorithm',
+    'offset',
+  )
+  .option(
+    '--reflect-duration',
+    'Use job estimation (in seconds) when drawing heatmap',
+  )
   .option('-o, --out-file <path>')
   .parse(process.argv);
 

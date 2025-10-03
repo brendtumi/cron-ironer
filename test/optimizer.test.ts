@@ -31,7 +31,12 @@ describe('offset optimizer', () => {
 describe('greedy optimizer', () => {
   it('respects keepTime markers and prioritises longer jobs', () => {
     const jobs: Job[] = [
-      { name: 'anchor', schedule: '0/10 * * * *', estimation: 60, keepTime: true },
+      {
+        name: 'anchor',
+        schedule: '0/10 * * * *',
+        estimation: 60,
+        keepTime: true,
+      },
       { name: 'long', schedule: '*/10 * * * *', estimation: 300 },
       { name: 'morning', schedule: '*/10 0-11 * * *', estimation: 300 },
       { name: 'short', schedule: '*/10 * * * *', estimation: 60 },
@@ -46,7 +51,12 @@ describe('greedy optimizer', () => {
 
   it('accounts for work that spans midnight', () => {
     const jobs: Job[] = [
-      { name: 'heavy', schedule: '5/10 * * * *', estimation: 1200, keepTime: true },
+      {
+        name: 'heavy',
+        schedule: '5/10 * * * *',
+        estimation: 1200,
+        keepTime: true,
+      },
       { name: 'candidate', schedule: '*/10 * * * *', estimation: 60 },
     ];
     const res = suggestAggressiveSpread(jobs);
@@ -59,8 +69,18 @@ describe('greedy optimizer', () => {
     { timeout: 10000 },
     () => {
       const jobs: Job[] = [
-        { name: 'busy', schedule: '10 */2 * * *', estimation: 3600, keepTime: true },
-        { name: 'blocker', schedule: '0 */2 * * *', estimation: 3600, keepTime: true },
+        {
+          name: 'busy',
+          schedule: '10 */2 * * *',
+          estimation: 3600,
+          keepTime: true,
+        },
+        {
+          name: 'blocker',
+          schedule: '0 */2 * * *',
+          estimation: 3600,
+          keepTime: true,
+        },
         { name: 'candidate', schedule: '10 */2 * * *', estimation: 60 },
       ];
       const res = suggestAggressiveSpread(jobs);
@@ -72,7 +92,12 @@ describe('greedy optimizer', () => {
 
   it('understands range-based odd-hour schedules', { timeout: 10000 }, () => {
     const jobs: Job[] = [
-      { name: 'anchor', schedule: '0 1-23/2 * * *', estimation: 7200, keepTime: true },
+      {
+        name: 'anchor',
+        schedule: '0 1-23/2 * * *',
+        estimation: 7200,
+        keepTime: true,
+      },
       { name: 'candidate', schedule: '0 1-23/2 * * *', estimation: 60 },
     ];
     const res = suggestAggressiveSpread(jobs);
@@ -84,7 +109,12 @@ describe('greedy optimizer', () => {
 
   it('can move single daily jobs to a new time', () => {
     const jobs: Job[] = [
-      { name: 'evening-load', schedule: '0 18 * * *', estimation: 7200, keepTime: true },
+      {
+        name: 'evening-load',
+        schedule: '0 18 * * *',
+        estimation: 7200,
+        keepTime: true,
+      },
       { name: 'candidate', schedule: '0 18 * * *', estimation: 60 },
     ];
     const res = suggestAggressiveSpread(jobs);

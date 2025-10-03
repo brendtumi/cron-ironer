@@ -5,14 +5,15 @@
   estimation: 746
 - name: job_cde1deba
   description: word849 word576 word840 word355 word807
-  schedule: "*/5 * * * *"
+  schedule: '*/5 * * * *'
   estimation: 51
 - name: job_c8260096
   description: word331 word903 word513 word196 word518 word724
   schedule: 0 * * * *
   estimation: 1065
 - name: job_495e7bbe
-  description: word599 word645 word823 word468 word899 word164 word173 word636 word864
+  description:
+    word599 word645 word823 word468 word899 word164 word173 word636 word864
     word642 word546 word635 word995 word901
   schedule: 0 * * * *
   estimation: 1296
@@ -20,9 +21,10 @@
   schedule: 0 */2 * * *
   estimation: 304
 - name: job_92e95e94
-  description: word123 word900 word874 word445 word412 word720 word504 word225 word135
+  description:
+    word123 word900 word874 word445 word412 word720 word504 word225 word135
     word522
-  schedule: "*/5 * * * *"
+  schedule: '*/5 * * * *'
   estimation: 53
 - name: job_242ccb7e
   description: word506 word648 word646 word132 word661 word328 word782 word437
