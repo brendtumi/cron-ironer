@@ -22,7 +22,8 @@ Options:
   --format <yaml|json|text>  Infer from extension by default
   --image                    Write JPEG heatmap (min 1300x550) instead of ASCII
   --suggest                  Enable schedule optimization
-  --reflect-duration         Use job estimation when drawing heatmap
+  --optimizer <offset|greedy>  Select optimizer when using --suggest (default: offset)
+  --reflect-duration         Use job estimation (in seconds) when drawing heatmap
   -o, --out-file <path>      Write heatmap to file
 ```
 
@@ -74,6 +75,30 @@ Before optimization, jobs cluster in a few dark bands:
 After optimization, the schedule spreads jobs evenly across the day:
 
 ![Heatmap after optimization showing even distribution](test/resource/test-1.after.suggested.jpg)
+
+### Optimizer algorithms
+
+`cron-ironer` provides two optimizers for the `--suggest` flow:
+
+- **`offset`** (default) keeps the existing offsets grouped by cron interval and redistributes them evenly. It keeps the original start time for jobs that do not share an `*/n` minute pattern.
+- **`greedy`** aggressively searches for the least crowded start time for every eligible schedule. Jobs are sorted from longest duration to shortest, with ties broken by the number of daily intervals. Jobs marked with `keepTime: true` are scheduled first and never moved. The greedy optimizer minimises overlap across the whole day, including runs that span midnight and shifts that roll into the next day.
+
+> ⚠️ The greedy optimizer may change the start time (minute and hour) of your cron jobs while keeping their recurrence interval intact. Review the suggested cron expressions before applying them.
+
+For example, a job defined as `10 */2 * * *` (10 minutes past every two hours) can be shifted to `33 1/2 * * *`, spreading the workload to the odd hours while keeping the two-hour cadence. Likewise, a daily job that originally ran at `0 18 * * *` can move to a quieter `13 19 * * *` slot when the evening window is saturated.
+
+#### Keeping specific jobs pinned
+
+You can mark a job with `keepTime: true` to prevent optimizers from shifting it. This is particularly helpful when a job must stay aligned with external systems. Estimation values are expressed in seconds:
+
+```json
+[
+  { "name": "critical_sync", "schedule": "0/5 * * * *", "estimation": 600, "keepTime": true },
+  { "name": "background_cleanup", "schedule": "*/5 * * * *", "estimation": 120 }
+]
+```
+
+Running `npx cron-ironer schedule.json --suggest --optimizer greedy` keeps `critical_sync` at its current start minute and rearranges the other compatible jobs around it.
 
 #### Reflecting job duration
 

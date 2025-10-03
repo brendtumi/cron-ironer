@@ -6,4 +6,5 @@ export { default as buildMatrix } from './heatmap/buildMatrix';
 export { default as renderAscii } from './heatmap/renderAscii';
 export { default as renderImage } from './heatmap/renderImage';
 export { default as suggestSpread } from './optimizer/suggestSpread';
+export { default as suggestAggressiveSpread } from './optimizer/suggestAggressiveSpread';
 export * from './types';

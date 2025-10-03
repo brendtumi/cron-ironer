@@ -12,6 +12,7 @@ import {
   renderAscii,
   renderImage,
   suggestSpread,
+  suggestAggressiveSpread,
   Job,
 } from './index';
 
@@ -42,7 +43,8 @@ program
   .option('--format <yaml|json|text>', 'infer by extension')
   .option('--image', 'write JPEG heatmap instead of ASCII')
   .option('--suggest')
-  .option('--reflect-duration')
+  .option('--optimizer <offset|greedy>', 'schedule optimizer algorithm', 'offset')
+  .option('--reflect-duration', 'Use job estimation (in seconds) when drawing heatmap')
   .option('-o, --out-file <path>')
   .parse(process.argv);
 
@@ -52,6 +54,7 @@ const {
   reflectDuration,
   outFile,
   suggest,
+  optimizer: optimizerOpt,
 } = program.opts();
 const inputFile = program.args[0];
 if (!inputFile) program.error('Input file required');
@@ -92,10 +95,17 @@ function writeImage(matrix: number[][], suffix = '') {
 const matrix = buildMatrix(jobs, reflect);
 
 if (suggest) {
+  const optimizer = (optimizerOpt || 'offset') as string;
+  if (optimizer !== 'offset' && optimizer !== 'greedy') {
+    program.error(`Unknown optimizer: ${optimizer}`);
+  }
   if (!outputImage) writeAscii(matrix, '.before');
   writeImage(matrix, '.before');
 
-  const suggested = suggestSpread(jobs);
+  const suggested =
+    optimizer === 'greedy'
+      ? suggestAggressiveSpread(jobs)
+      : suggestSpread(jobs);
   let suggestedContent = '';
   if (format === 'yaml') suggestedContent = yaml.stringify(suggested);
   else if (format === 'json')
