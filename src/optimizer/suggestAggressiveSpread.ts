@@ -13,13 +13,24 @@ type JobDescriptor =
       step: number;
       tail: string;
       hourField: string;
+      minute: number;
     }
-  | { kind: 'daily'; tail: string };
+  | { kind: 'daily'; tail: string; minute: number; hour: number };
 
 function normalizeMinute(idx: number): number {
   let value = idx % MINUTES_PER_DAY;
   if (value < 0) value += MINUTES_PER_DAY;
   return value;
+}
+
+function expandSlotsFromStarts(starts: number[], duration: number): number[] {
+  const slots: number[] = [];
+  starts.forEach((start) => {
+    for (let k = 0; k < duration; k += 1) {
+      slots.push(normalizeMinute(start + k));
+    }
+  });
+  return slots;
 }
 
 function parseStep(
@@ -85,12 +96,18 @@ function describeJob(job: Job): JobDescriptor {
 
   const hourStep = parseHourStep(hour);
   if (hourStep && hourStep.step <= 24 && hourStep.base < hourStep.step) {
-    return { kind: 'hour-step', step: hourStep.step, tail, hourField: hour };
+    return {
+      kind: 'hour-step',
+      step: hourStep.step,
+      tail,
+      hourField: hour,
+      minute: minuteValue,
+    };
   }
 
   const hourValue = parseNumber(hour, 23);
   if (hourValue !== null) {
-    return { kind: 'daily', tail };
+    return { kind: 'daily', tail, minute: minuteValue, hour: hourValue };
   }
 
   return { kind: 'fixed' };
@@ -149,48 +166,9 @@ export default function suggestAggressiveSpread(jobs: Job[]): Job[] {
   const getSlots = (schedule: string, estimation?: number): number[] => {
     const key = `${schedule}|${estimation ?? 0}`;
     if (slotCache[key]) return slotCache[key];
-    const [minute, ...restArr] = schedule.split(' ');
-    const rest = restArr.join(' ');
-    const m = minute.match(STEP_REGEX);
     const duration = estimation ? Math.max(1, Math.ceil(estimation / 60)) : 1;
-    const slots: number[] = [];
-    const pushSlot = (idx: number) => {
-      slots.push(normalizeMinute(idx));
-    };
-    if (m) {
-      const [, offStr, stepStr] = m;
-      const off = offStr && offStr !== '*' ? Number(offStr) : 0;
-      const step = Number(stepStr);
-      const bases = getBaseSlots(rest);
-      const mins: number[] = [];
-      for (let i = off; i < 60; i += step) mins.push(i);
-      bases.forEach((base) => {
-        mins.forEach((min) => {
-          const startIdx = base + min;
-          for (let k = 0; k < duration; k += 1) {
-            pushSlot(startIdx + k);
-          }
-        });
-      });
-    } else {
-      const start = new Date();
-      start.setHours(0, 0, 0, 0);
-      const end = new Date(start);
-      end.setHours(23, 59, 59, 999);
-      const currentDate = new Date(start.getTime() - 60000);
-      try {
-        const iter = parser.parse(schedule, { currentDate, endDate: end });
-        while (iter.hasNext()) {
-          const d = iter.next().toDate();
-          const base = d.getHours() * 60 + d.getMinutes();
-          for (let k = 0; k < duration; k += 1) {
-            pushSlot(base + k);
-          }
-        }
-      } catch {
-        // ignore invalid schedules
-      }
-    }
+    const starts = getStartSlots(schedule);
+    const slots = expandSlotsFromStarts(starts, duration);
     slotCache[key] = slots;
     return slots;
   };
@@ -346,16 +324,44 @@ export default function suggestAggressiveSpread(jobs: Job[]): Job[] {
       : new Set<number>();
     if (groupId && !groupUsage[groupId]) groupUsage[groupId] = used;
 
-    let bestSchedule = job.schedule;
-    let bestSlots = coverageMap[job.name];
-    let bestScore = Number.POSITIVE_INFINITY;
-    let bestPenalty = Number.POSITIVE_INFINITY;
-    let bestPhase: number | null = null;
+    const duration = getDuration(job);
+    const initialSlots = coverageMap[job.name];
+    const initialStarts = startTimesMap[job.name];
 
-    const considerCandidate = (schedule: string, phase: number) => {
-      const slots = getSlots(schedule, job.estimation);
-      if (slots.length === 0) return;
-      const score = slots.reduce((acc, idx) => acc + density[idx], 0);
+    const scoreFromStarts = (starts: number[]): number => {
+      let total = 0;
+      starts.forEach((start) => {
+        for (let k = 0; k < duration; k += 1) {
+          total += density[normalizeMinute(start + k)];
+        }
+      });
+      return total;
+    };
+
+    let initialPhase: number | null = null;
+    if (descriptor.kind === 'minute-step') {
+      initialPhase = getOffsetFromSchedule(job.schedule, descriptor.step);
+      if (initialPhase !== null) initialPhase %= descriptor.step;
+    } else if (descriptor.kind === 'hour-step') {
+      initialPhase = getHourStepPhase(job.schedule, descriptor.step);
+    } else if (descriptor.kind === 'daily') {
+      initialPhase = getDailyPhase(job.schedule);
+    }
+
+    let bestSchedule = job.schedule;
+    let bestStarts = initialStarts;
+    let bestSlots: number[] | null = initialSlots;
+    let bestPhase = initialPhase;
+    let bestScore = initialSlots.reduce((acc, idx) => acc + density[idx], 0);
+    let bestPenalty = bestPhase !== null && used.has(bestPhase) ? 1 : 0;
+
+    const considerCandidate = (
+      schedule: string,
+      phase: number,
+      starts: number[],
+    ) => {
+      if (starts.length === 0) return;
+      const score = scoreFromStarts(starts);
       const penalty = used.has(phase) ? 1 : 0;
       if (
         score < bestScore ||
@@ -363,51 +369,73 @@ export default function suggestAggressiveSpread(jobs: Job[]): Job[] {
           (penalty < bestPenalty ||
             (penalty === bestPenalty &&
               (bestPhase === null ||
-                phase < bestPhase ||
-                (phase === bestPhase && schedule < bestSchedule)))))
+                phase < (bestPhase ?? Number.POSITIVE_INFINITY) ||
+                (bestPhase !== null &&
+                  phase === bestPhase &&
+                  schedule < bestSchedule)))))
       ) {
         bestScore = score;
         bestPenalty = penalty;
         bestSchedule = schedule;
-        bestSlots = slots;
         bestPhase = phase;
+        bestStarts = starts;
+        bestSlots = schedule === job.schedule ? initialSlots : null;
       }
     };
 
     if (descriptor.kind === 'minute-step') {
       const limit = Math.min(descriptor.step, 60);
+      const offsets: number[] = [];
       for (
         let offset = 0;
         offset < limit && offset < descriptor.step;
         offset += 1
       ) {
+        offsets.push(offset);
+      }
+      const baseOffset =
+        initialPhase !== null ? initialPhase % descriptor.step : 0;
+      const startIndex = offsets.indexOf(baseOffset);
+      for (let i = 0; i < offsets.length; i += 1) {
+        const offset =
+          startIndex >= 0
+            ? offsets[(startIndex + i) % offsets.length]
+            : offsets[i];
         const schedule = `${offset}/${descriptor.step} ${descriptor.rest}`;
-        considerCandidate(schedule, offset % descriptor.step);
+        const starts = getStartSlots(schedule);
+        considerCandidate(schedule, offset % descriptor.step, starts);
         if (bestScore === 0 && bestPenalty === 0) break;
       }
     } else if (descriptor.kind === 'hour-step') {
-      for (let base = 0; base < descriptor.step; base += 1) {
+      const minute = descriptor.minute;
+      const initialPhase = getHourStepPhase(job.schedule, descriptor.step);
+      const initialBase =
+        initialPhase !== null
+          ? Math.floor(initialPhase / 60) % descriptor.step
+          : 0;
+      for (let delta = 0; delta < descriptor.step; delta += 1) {
+        const base = (initialBase + delta) % descriptor.step;
         const hourField = formatHourField(
           base,
           descriptor.step,
           descriptor.hourField,
         );
-        for (let minute = 0; minute < 60; minute += 1) {
-          const schedule = `${minute} ${hourField} ${descriptor.tail}`;
-          const phase = base * 60 + minute;
-          considerCandidate(schedule, phase);
-          if (bestScore === 0 && bestPenalty === 0) break;
+        const schedule = `${minute} ${hourField} ${descriptor.tail}`;
+        const phase = base * 60 + minute;
+        const starts: number[] = [];
+        for (let hour = base; hour < 24; hour += descriptor.step) {
+          starts.push(hour * 60 + minute);
         }
+        considerCandidate(schedule, phase, starts);
         if (bestScore === 0 && bestPenalty === 0) break;
       }
     } else if (descriptor.kind === 'daily') {
-      for (let hour = 0; hour < 24; hour += 1) {
-        for (let minute = 0; minute < 60; minute += 1) {
-          const schedule = `${minute} ${hour} ${descriptor.tail}`;
-          const phase = hour * 60 + minute;
-          considerCandidate(schedule, phase);
-          if (bestScore === 0 && bestPenalty === 0) break;
-        }
+      const minute = descriptor.minute;
+      for (let delta = 0; delta < 24; delta += 1) {
+        const hour = (descriptor.hour + delta) % 24;
+        const schedule = `${minute} ${hour} ${descriptor.tail}`;
+        const phase = hour * 60 + minute;
+        considerCandidate(schedule, phase, [phase]);
         if (bestScore === 0 && bestPenalty === 0) break;
       }
     }
@@ -421,10 +449,12 @@ export default function suggestAggressiveSpread(jobs: Job[]): Job[] {
     }
 
     target.schedule = bestSchedule;
-    bestSlots.forEach((idx) => {
+    const finalSlots = bestSlots ?? expandSlotsFromStarts(bestStarts, duration);
+    finalSlots.forEach((idx) => {
       density[idx] += 1;
     });
-    coverageMap[job.name] = bestSlots;
+    coverageMap[job.name] = finalSlots;
+    startTimesMap[job.name] = bestStarts;
     if (groupId) used.add(bestPhase);
   });
 
