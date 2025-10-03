@@ -68,6 +68,7 @@ if (!inputFile) program.error('Input file required');
 const format = formatOpt || inferFormat(inputFile);
 const outputImage = Boolean(imageOpt);
 const reflect = Boolean(reflectDuration);
+const optimizer = (optimizerOpt || 'offset') as string;
 
 const jobs = loadJobs(inputFile, format);
 
@@ -94,6 +95,7 @@ function writeImage(matrix: number[][], suffix = '') {
   let finalSuffix = suffix;
   if (suggest) finalSuffix = `${finalSuffix}.suggested`;
   if (reflect) finalSuffix = `${finalSuffix}.reflect`;
+  if (optimizer) finalSuffix = `${finalSuffix}.${optimizer}`;
   const target = addSuffix(replaceExt(base, '.jpg'), finalSuffix);
   const buffer = renderImage(matrix);
   fs.writeFileSync(target, buffer);
@@ -102,7 +104,6 @@ function writeImage(matrix: number[][], suffix = '') {
 const matrix = buildMatrix(jobs, reflect);
 
 if (suggest) {
-  const optimizer = (optimizerOpt || 'offset') as string;
   if (optimizer !== 'offset' && optimizer !== 'greedy') {
     program.error(`Unknown optimizer: ${optimizer}`);
   }

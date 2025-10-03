@@ -38,6 +38,11 @@ Using `test/resource/test-1.json`:
 ```bash
 npx cron-ironer test/resource/test-1.json --suggest
 ```
+To try the greedy optimizer on the same workload and allow the tool to adjust hours, run:
+
+```bash
+npx cron-ironer test/resource/test-1.json --suggest --optimizer greedy
+```
 
 Input snippet:
 
