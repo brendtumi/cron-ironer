@@ -7,7 +7,9 @@ const ROOT = path.resolve(__dirname, '..');
 const INPUT_DIR = path.join(ROOT, 'test', 'resource');
 
 function run(command, args, options = {}) {
-  console.log(`$ ${[command, ...args].map(a => JSON.stringify(a)).join(' ')}`);
+  console.log(
+    `$ ${[command, ...args].map((a) => JSON.stringify(a)).join(' ')}`,
+  );
   try {
     execFileSync(command, args, { stdio: 'inherit', cwd: ROOT, ...options });
   } catch (err) {
@@ -38,9 +40,26 @@ function main() {
     // 2) --image --suggest
     run('npm', ['run', '-s', 'dev', '--', rel, '--image', '--suggest']);
     // 3) --image --reflect-duration
-    run('npm', ['run', '-s', 'dev', '--', rel, '--image', '--reflect-duration']);
+    run('npm', [
+      'run',
+      '-s',
+      'dev',
+      '--',
+      rel,
+      '--image',
+      '--reflect-duration',
+    ]);
     // 4) --image --suggest --reflect-duration
-    run('npm', ['run', '-s', 'dev', '--', rel, '--image', '--suggest', '--reflect-duration']);
+    run('npm', [
+      'run',
+      '-s',
+      'dev',
+      '--',
+      rel,
+      '--image',
+      '--suggest',
+      '--reflect-duration',
+    ]);
   }
 }
 

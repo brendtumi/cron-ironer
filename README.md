@@ -38,6 +38,7 @@ Using `test/resource/test-1.json`:
 ```bash
 npx cron-ironer test/resource/test-1.json --suggest
 ```
+
 To try the greedy optimizer on the same workload and allow the tool to adjust hours, run:
 
 ```bash
@@ -151,7 +152,6 @@ After optimization, load spreads while respecting job length (10 Cron Jobs):
 With the `greedy` optimizer, the schedule is more evenly distributed (10 Cron Jobs):
 
 ![Heatmap after optimization weighted by job duration_with_greedy](test/resource/test-4.after.suggested.reflect.greedy.jpg)
-
 
 ### Heatmap interpretation
 
