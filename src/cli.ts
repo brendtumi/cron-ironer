@@ -8,12 +8,15 @@ import {
   parseJson,
   parseCrontab,
   serializeCrontab,
-  buildMatrix,
+  buildHeatmapData,
   renderAscii,
   renderImage,
+  renderInteractiveHtml,
   suggestSpread,
   suggestAggressiveSpread,
   Job,
+  HeatmapData,
+  ImageFormat,
 } from './index';
 
 function inferFormat(file: string): 'yaml' | 'json' | 'text' {
@@ -41,7 +44,12 @@ const program = new Command();
 program
   .argument('<file>')
   .option('--format <yaml|json|text>', 'infer by extension')
-  .option('--image', 'write JPEG heatmap instead of ASCII')
+  .option('--image', 'write heatmap image instead of ASCII')
+  .option(
+    '--image-format <jpeg|png|svg>',
+    'image format when writing heatmaps',
+    'jpeg',
+  )
   .option('--suggest')
   .option(
     '--optimizer <offset|greedy>',
@@ -52,13 +60,16 @@ program
     '--reflect-duration',
     'Use job estimation (in seconds) when drawing heatmap',
   )
+  .option('--html', 'write interactive HTML heatmap')
   .option('-o, --out-file <path>')
   .parse(process.argv);
 
 const {
   format: formatOpt,
   image: imageOpt,
+  imageFormat: imageFormatOpt,
   reflectDuration,
+  html: htmlOpt,
   outFile,
   suggest,
   optimizer: optimizerOpt,
@@ -67,8 +78,14 @@ const inputFile = program.args[0];
 if (!inputFile) program.error('Input file required');
 const format = formatOpt || inferFormat(inputFile);
 const outputImage = Boolean(imageOpt);
+const htmlOutput = Boolean(htmlOpt);
 const reflect = Boolean(reflectDuration);
 const optimizer = (optimizerOpt || 'offset') as string;
+const imageFormat = (imageFormatOpt || 'jpeg') as ImageFormat;
+
+if (!['jpeg', 'png', 'svg'].includes(imageFormat)) {
+  program.error(`Unsupported image format: ${imageFormat}`);
+}
 
 const jobs = loadJobs(inputFile, format);
 
@@ -96,18 +113,33 @@ function writeImage(matrix: number[][], suffix = '') {
   if (suggest) finalSuffix = `${finalSuffix}.suggested`;
   if (reflect) finalSuffix = `${finalSuffix}.reflect`;
   if (optimizer) finalSuffix = `${finalSuffix}.${optimizer}`;
-  const target = addSuffix(replaceExt(base, '.jpg'), finalSuffix);
-  const buffer = renderImage(matrix);
+  const ext =
+    imageFormat === 'png' ? '.png' : imageFormat === 'svg' ? '.svg' : '.jpg';
+  const target = addSuffix(replaceExt(base, ext), finalSuffix);
+  const buffer = renderImage(matrix, { format: imageFormat });
   fs.writeFileSync(target, buffer);
 }
 
-const matrix = buildMatrix(jobs, reflect);
+function writeHtml(heatmap: HeatmapData, suffix = '') {
+  const base = outFile || inputFile;
+  let finalSuffix = suffix;
+  if (suggest) finalSuffix = `${finalSuffix}.suggested`;
+  if (reflect) finalSuffix = `${finalSuffix}.reflect`;
+  if (optimizer) finalSuffix = `${finalSuffix}.${optimizer}`;
+  const target = addSuffix(replaceExt(base, '.html'), finalSuffix);
+  const content = renderInteractiveHtml(heatmap);
+  fs.writeFileSync(target, content, 'utf8');
+}
+
+const heatmap = buildHeatmapData(jobs, reflect);
+const matrix = heatmap.matrix;
 
 if (suggest) {
   if (optimizer !== 'offset' && optimizer !== 'greedy') {
     program.error(`Unknown optimizer: ${optimizer}`);
   }
   if (!outputImage) writeAscii(matrix, '.before');
+  if (htmlOutput) writeHtml(heatmap, '.before');
   writeImage(matrix, '.before');
 
   const suggested =
@@ -121,10 +153,13 @@ if (suggest) {
   else suggestedContent = `${serializeCrontab(suggested)}\n`;
   fs.writeFileSync(addSuffix(inputFile, '.suggested'), suggestedContent);
 
-  const matrix2 = buildMatrix(suggested, reflect);
+  const heatmapAfter = buildHeatmapData(suggested, reflect);
+  const matrix2 = heatmapAfter.matrix;
   if (!outputImage) writeAscii(matrix2, '.after');
+  if (htmlOutput) writeHtml(heatmapAfter, '.after');
   writeImage(matrix2, '.after');
 } else {
   if (outputImage) writeImage(matrix);
   else writeAscii(matrix);
+  if (htmlOutput) writeHtml(heatmap);
 }

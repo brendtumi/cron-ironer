@@ -21,11 +21,19 @@ Cron‑Ironer, a cli tool, that helps developers spread and de‑conflict cron j
 - Run linter: `npm run lint`
 
 ### Testing Guidelines
+
 - Always work from within the package directory when running tests
 - Mock all external dependencies in unit tests
 
 ## Pull Requests
 
+- Create an entry in the [CHANGELOG's Unreleased section](./CHANGELOG.md) for any changes you make with following types of changes
+  - `Added` for new features.
+  - `Changed` for changes in existing functionality.
+  - `Deprecated` for soon-to-be removed features.
+  - `Removed` for now removed features.
+  - `Fixed` for any bug fixes.
+  - `Security` in case of vulnerabilities.
 - Always run linter and tests before submitting a PR.
 - Follow the checklist in the [PR template](.github/pull_request_template.md).
 

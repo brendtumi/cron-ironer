@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { buildMatrix, renderAscii, renderImage, Job } from '../src';
+import {
+  buildMatrix,
+  buildHeatmapData,
+  renderAscii,
+  renderImage,
+  renderInteractiveHtml,
+  Job,
+} from '../src';
 import { decode } from 'jpeg-js';
 import { createCanvas } from '@napi-rs/canvas';
 
@@ -12,6 +19,16 @@ describe('heatmap', () => {
     const matrix = buildMatrix(jobs, true);
     expect(matrix[0][0]).toBe(9);
     expect(matrix[0][1]).toBe(5);
+  });
+  it('collects contributions for html rendering', () => {
+    const jobs: Job[] = [
+      { name: 'a', schedule: '0 0 * * *' },
+      { name: 'b', schedule: '0 0 * * *' },
+    ];
+    const heatmap = buildHeatmapData(jobs);
+    expect(heatmap.raw[0][0]).toBe(2);
+    expect(heatmap.maxValue).toBe(2);
+    expect(new Set(heatmap.contributions[0][0])).toEqual(new Set(['a', 'b']));
   });
   it('renders ascii with axis labels', () => {
     const ascii = renderAscii([Array(60).fill(0)]);
@@ -181,5 +198,46 @@ describe('heatmap', () => {
     const { width, height } = decode(buf);
     expect(width).toBeGreaterThanOrEqual(1300);
     expect(height).toBeGreaterThanOrEqual(550);
+  });
+
+  it('renders png images', () => {
+    const matrix = [
+      [0, 1],
+      [2, 4],
+    ];
+    const buf = renderImage(matrix, {
+      minWidth: 0,
+      minHeight: 0,
+      format: 'png',
+    });
+    expect(buf.subarray(0, 8).toString('hex')).toBe('89504e470d0a1a0a');
+  });
+
+  it('renders svg images', () => {
+    const matrix = [
+      [0, 1],
+      [2, 4],
+    ];
+    const buf = renderImage(matrix, {
+      minWidth: 0,
+      minHeight: 0,
+      format: 'svg',
+    });
+    const svg = buf.toString('utf8');
+    expect(svg.includes('<svg')).toBe(true);
+    expect(svg).toContain('rect');
+  });
+
+  it('renders interactive html', () => {
+    const jobs: Job[] = [
+      { name: 'jobA', schedule: '0 0 * * *' },
+      { name: 'jobB', schedule: '15 3 * * *' },
+    ];
+    const heatmap = buildHeatmapData(jobs);
+    const html = renderInteractiveHtml(heatmap);
+    expect(html).toContain('Cron Ironer Heatmap');
+    expect(html).toContain('data-hour="00"');
+    expect(html).toContain('Hover over a minute');
+    expect(html).toContain('data-jobs=');
   });
 });
