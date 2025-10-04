@@ -89,6 +89,12 @@ if (!['jpeg', 'png', 'svg'].includes(imageFormat)) {
 
 const jobs = loadJobs(inputFile, format);
 
+const generatedFiles: string[] = [];
+
+function recordGenerated(file: string): void {
+  generatedFiles.push(path.resolve(file));
+}
+
 function replaceExt(file: string, newExt: string): string {
   const dir = path.dirname(file);
   const name = path.basename(file, path.extname(file));
@@ -101,7 +107,9 @@ function writeAscii(matrix: number[][], suffix = '') {
   if (suggest) finalSuffix = `${finalSuffix}.suggested`;
   if (reflect) finalSuffix = `${finalSuffix}.reflect`;
   if (outFile) {
-    fs.writeFileSync(addSuffix(outFile, finalSuffix), content);
+    const target = addSuffix(outFile, finalSuffix);
+    fs.writeFileSync(target, content);
+    recordGenerated(target);
   } else {
     console.log(content);
   }
@@ -118,6 +126,7 @@ function writeImage(matrix: number[][], suffix = '') {
   const target = addSuffix(replaceExt(base, ext), finalSuffix);
   const buffer = renderImage(matrix, { format: imageFormat });
   fs.writeFileSync(target, buffer);
+  recordGenerated(target);
 }
 
 function writeHtml(heatmap: HeatmapData, suffix = '') {
@@ -129,6 +138,7 @@ function writeHtml(heatmap: HeatmapData, suffix = '') {
   const target = addSuffix(replaceExt(base, '.html'), finalSuffix);
   const content = renderInteractiveHtml(heatmap);
   fs.writeFileSync(target, content, 'utf8');
+  recordGenerated(target);
 }
 
 const heatmap = buildHeatmapData(jobs, reflect);
@@ -151,7 +161,9 @@ if (suggest) {
   else if (format === 'json')
     suggestedContent = `${JSON.stringify(suggested, null, 2)}\n`;
   else suggestedContent = `${serializeCrontab(suggested)}\n`;
-  fs.writeFileSync(addSuffix(inputFile, '.suggested'), suggestedContent);
+  const suggestionPath = addSuffix(inputFile, '.suggested');
+  fs.writeFileSync(suggestionPath, suggestedContent);
+  recordGenerated(suggestionPath);
 
   const heatmapAfter = buildHeatmapData(suggested, reflect);
   const matrix2 = heatmapAfter.matrix;
@@ -162,4 +174,11 @@ if (suggest) {
   if (outputImage) writeImage(matrix);
   else writeAscii(matrix);
   if (htmlOutput) writeHtml(heatmap);
+}
+
+if (generatedFiles.length > 0) {
+  console.log('Generated files:');
+  generatedFiles.forEach((file) => {
+    console.log(` - ${file}`);
+  });
 }

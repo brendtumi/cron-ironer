@@ -10,6 +10,8 @@
 ### Changed
 
 - Improved the interactive HTML heatmap accessibility with focusable cells and ARIA descriptions.
+- Interactive HTML heatmaps now break down starting versus continuing job runs and include a direct link to the npm package page.
+- CLI runs print the absolute paths of every generated artifact (heatmaps, HTML, suggestions) for easier discovery in automation logs.
 
 ## [1.1.0] - 2025-10-03
 

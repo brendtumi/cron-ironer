@@ -28,7 +28,23 @@ describe('heatmap', () => {
     const heatmap = buildHeatmapData(jobs);
     expect(heatmap.raw[0][0]).toBe(2);
     expect(heatmap.maxValue).toBe(2);
-    expect(new Set(heatmap.contributions[0][0])).toEqual(new Set(['a', 'b']));
+    expect(heatmap.contributions[0][0]).toEqual([
+      { name: 'a', status: 'starting' },
+      { name: 'b', status: 'starting' },
+    ]);
+  });
+
+  it('marks continuing contributions for long-running jobs', () => {
+    const jobs: Job[] = [
+      { name: 'long', schedule: '0 0 * * *', estimation: 180 },
+    ];
+    const heatmap = buildHeatmapData(jobs, true);
+    expect(heatmap.contributions[0][0]).toEqual([
+      { name: 'long', status: 'starting' },
+    ]);
+    expect(heatmap.contributions[0][1]).toEqual([
+      { name: 'long', status: 'continuing' },
+    ]);
   });
   it('renders ascii with axis labels', () => {
     const ascii = renderAscii([Array(60).fill(0)]);
@@ -200,6 +216,37 @@ describe('heatmap', () => {
     expect(height).toBeGreaterThanOrEqual(550);
   });
 
+  it('renders interactive html with npm link and contribution metadata', () => {
+    const jobs: Job[] = [
+      { name: 'long', schedule: '0 0 * * *', estimation: 120 },
+      { name: 'short', schedule: '0 0 * * *' },
+    ];
+    const heatmap = buildHeatmapData(jobs, true);
+    const html = renderInteractiveHtml(heatmap);
+    expect(html).toContain('https://www.npmjs.com/package/cron-ironer');
+    expect(html).toContain('data-starting="2"');
+    expect(html).toContain('data-continuing="1"');
+    const contributionMatches = [
+      ...html.matchAll(/data-contributions="([^"]+)"/g),
+    ];
+    const continuingEntry = contributionMatches
+      .map((match) => JSON.parse(decodeURIComponent(match[1])))
+      .find(
+        (entries) =>
+          Array.isArray(entries) &&
+          entries.some((entry) => entry && entry.status === 'continuing'),
+      );
+    expect(continuingEntry).toBeDefined();
+    expect(continuingEntry).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'long', status: 'continuing' }),
+      ]),
+    );
+    expect(html).toContain(
+      'Hover over a minute to inspect starting and continuing job contributions',
+    );
+  });
+
   it('renders png images', () => {
     const matrix = [
       [0, 1],
@@ -238,8 +285,9 @@ describe('heatmap', () => {
     expect(html).toContain('Cron Ironer Heatmap');
     expect(html).toContain('data-hour="00"');
     expect(html).toContain('Hover over a minute');
-    expect(html).toContain('data-jobs=');
+    expect(html).toContain('data-contributions=');
     expect(html).toContain('tabindex="0"');
-    expect(html).toContain('aria-label="00:00 has 1 run. Jobs: jobA."');
+    expect(html).toContain('data-starting="1"');
+    expect(html).toContain('aria-label="00:00 has 1 run. Starting run: jobA."');
   });
 });

@@ -1,5 +1,11 @@
 import parser from 'cron-parser';
-import { ContributionMatrix, HeatmapData, Job, Matrix } from '../types';
+import {
+  ContributionMatrix,
+  HeatmapContribution,
+  HeatmapData,
+  Job,
+  Matrix,
+} from '../types';
 
 function createMatrix(): Matrix {
   return Array.from({ length: 24 }, () => Array(60).fill(0));
@@ -7,7 +13,7 @@ function createMatrix(): Matrix {
 
 function createContributionMatrix(): ContributionMatrix {
   return Array.from({ length: 24 }, () =>
-    Array.from({ length: 60 }, () => [] as string[]),
+    Array.from({ length: 60 }, () => [] as HeatmapContribution[]),
   );
 }
 
@@ -54,7 +60,10 @@ function buildRawMatrix(jobs: Job[], options: BuildOptions): BuildResult {
           if (hh < 24) {
             matrix[hh][mm] += 1;
             if (contributions) {
-              contributions[hh][mm].push(job.name);
+              contributions[hh][mm].push({
+                name: job.name,
+                status: k === 0 ? 'starting' : 'continuing',
+              });
             }
           }
         }
