@@ -74,6 +74,39 @@ describe('cli', () => {
     rmSync(dir, { recursive: true, force: true });
   }, 20000);
 
+  it('does not create images for suggestions without --image', () => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'ci-'));
+    const cronFile = path.join(dir, 'jobs.json');
+    writeFileSync(
+      cronFile,
+      JSON.stringify(
+        [
+          {
+            name: 'job',
+            schedule: '*/5 * * * *',
+          },
+        ],
+        null,
+        2,
+      ),
+    );
+    const result = spawnSync('node', [
+      '-r',
+      'ts-node/register',
+      cli,
+      cronFile,
+      '--suggest',
+    ]);
+    expect(result.status).toBe(0);
+    const before = path.join(dir, 'jobs.before.suggested.offset.jpg');
+    const after = path.join(dir, 'jobs.after.suggested.offset.jpg');
+    expect(existsSync(before)).toBe(false);
+    expect(existsSync(after)).toBe(false);
+    const suggestion = path.join(dir, 'jobs.suggested.json');
+    expect(existsSync(suggestion)).toBe(true);
+    rmSync(dir, { recursive: true, force: true });
+  }, 20000);
+
   it('orders suggested before reflect suffix', () => {
     const dir = mkdtempSync(path.join(tmpdir(), 'ci-'));
     const base = path.join(dir, 'heat.jpg');

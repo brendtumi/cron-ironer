@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/cron-ironer)](https://www.npmjs.com/package/cron-ironer)
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/brendtumi/cron-ironer/ci.yml?branch=main)
 
-Cron Ironer parses cron schedules, renders 24-hour heatmaps as ASCII or JPEG, and can suggest evenly distributed alternatives.
+Cron Ironer parses cron schedules, renders 24-hour heatmaps as ASCII, PNG, SVG, or interactive HTML, and can suggest evenly distributed alternatives.
 
 ## Installation
 
@@ -20,10 +20,12 @@ cron-ironer <file> [options]
 
 Options:
   --format <yaml|json|text>  Infer from extension by default
-  --image                    Write JPEG heatmap (min 1300x550) instead of ASCII
+  --image                    Write heatmap image (min 1300x550) instead of ASCII
+  --image-format <jpeg|png|svg>  Image format for generated heatmaps (default: jpeg)
   --suggest                  Enable schedule optimization
   --optimizer <offset|greedy>  Select optimizer when using --suggest (default: offset)
   --reflect-duration         Use job estimation (in seconds) when drawing heatmap
+  --html                     Write interactive HTML heatmap
   -o, --out-file <path>      Write heatmap to file
 ```
 
@@ -59,7 +61,7 @@ Input snippet:
 Running the command produces:
 
 - `test/resource/test-1.suggested.json` with optimized schedules
-- `test/resource/test-1.before.suggested.jpg` and `test/resource/test-1.after.suggested.jpg` heatmaps
+- `test/resource/test-1.before.suggested.jpg` and `test/resource/test-1.after.suggested.jpg` heatmaps (use `--image-format png` or `--image-format svg` for alternate formats)
 
 Output snippet (`test/resource/test-1.suggested.json`):
 
@@ -156,8 +158,11 @@ With the `greedy` optimizer, the schedule is more evenly distributed (10 Cron Jo
 ### Heatmap interpretation
 
 - Image heatmaps start at 1300 x 550 pixels and expand as needed.
+- Select the encoding with `--image-format jpeg|png|svg`.
 - The Y-axis shows hours (00-23); the X-axis lists minutes (00-59) in 5-minute increments.
 - ASCII heatmaps dedicate two characters per minute and use shading characters (`█`, `▓`, `▒`, `░`) to indicate cron job density.
+- Use `--html` to export an interactive HTML heatmap with hoverable cells listing contributing job names and raw counts.
+- Keyboard users can tab through the interactive HTML heatmap; focused cells announce counts and contributing jobs via accessible tooltips.
 
 ## License
 

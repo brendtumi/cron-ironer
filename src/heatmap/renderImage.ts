@@ -1,28 +1,51 @@
-import { createCanvas } from '@napi-rs/canvas';
+import {
+  Canvas as SkiaCanvas,
+  SvgCanvas,
+  SvgExportFlag,
+  createCanvas,
+} from '@napi-rs/canvas';
 import { Matrix } from '../types';
+import { getColor } from './palette';
 
-const palette: [number, number, number][] = [
-  [247, 251, 255],
-  [222, 235, 247],
-  [198, 219, 239],
-  [158, 202, 225],
-  [107, 174, 214],
-  [66, 146, 198],
-  [33, 113, 181],
-  [8, 81, 156],
-  [8, 48, 107],
-  [3, 19, 43],
-];
+export type ImageFormat = 'jpeg' | 'png' | 'svg';
 
-function getColor(value: number): [number, number, number] {
-  return palette[Math.min(value, palette.length - 1)];
+export interface RenderImageOptions {
+  minWidth?: number;
+  minHeight?: number;
+  format?: ImageFormat;
 }
 
 export default function renderImage(
   matrix: Matrix,
-  minWidth = 1300,
-  minHeight = 550,
+  minWidth?: number,
+  minHeight?: number,
+  format?: ImageFormat,
+): Buffer;
+export default function renderImage(
+  matrix: Matrix,
+  options: RenderImageOptions,
+): Buffer;
+export default function renderImage(
+  matrix: Matrix,
+  arg1?: number | RenderImageOptions,
+  arg2?: number,
+  arg3?: ImageFormat,
 ): Buffer {
+  let minWidth = 1300;
+  let minHeight = 550;
+  let format: ImageFormat = 'jpeg';
+
+  if (typeof arg1 === 'object' && arg1 !== null) {
+    const opts = arg1 as RenderImageOptions;
+    if (typeof opts.minWidth === 'number') minWidth = opts.minWidth;
+    if (typeof opts.minHeight === 'number') minHeight = opts.minHeight;
+    if (opts.format) format = opts.format;
+  } else {
+    if (typeof arg1 === 'number') minWidth = arg1;
+    if (typeof arg2 === 'number') minHeight = arg2;
+    if (arg3) format = arg3;
+  }
+
   const cols = matrix[0]?.length || 0;
   const rows = matrix.length;
   const fontSize = 12;
@@ -48,7 +71,10 @@ export default function renderImage(
     topMargin + rows * pitch - gap + bottomMargin,
   );
 
-  const canvas = createCanvas(width, height);
+  const isSvg = format === 'svg';
+  const canvas = isSvg
+    ? createCanvas(width, height, SvgExportFlag.NoPrettyXML)
+    : createCanvas(width, height);
   const ctx = canvas.getContext('2d');
   ctx.fillStyle = '#eee';
   ctx.fillRect(0, 0, width, height);
@@ -110,5 +136,14 @@ export default function renderImage(
     );
   }
 
-  return canvas.encodeSync('jpeg', 90);
+  if (isSvg) {
+    return (canvas as SvgCanvas).getContent();
+  }
+
+  const rasterCanvas = canvas as SkiaCanvas;
+  if (format === 'png') {
+    return rasterCanvas.encodeSync('png');
+  }
+
+  return rasterCanvas.encodeSync('jpeg', 90);
 }

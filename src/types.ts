@@ -7,3 +7,18 @@ export interface Job {
 }
 
 export type Matrix = number[][]; // 24 x 60
+
+export interface HeatmapContribution {
+  name: string;
+  status: 'starting' | 'continuing';
+}
+
+export type ContributionMatrix = HeatmapContribution[][][];
+
+export interface HeatmapData {
+  matrix: Matrix;
+  raw: Matrix;
+  contributions: ContributionMatrix;
+  maxValue: number;
+  minValue: number;
+}
