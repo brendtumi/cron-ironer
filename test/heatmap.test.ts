@@ -28,6 +28,7 @@ describe('heatmap', () => {
     const heatmap = buildHeatmapData(jobs);
     expect(heatmap.raw[0][0]).toBe(2);
     expect(heatmap.maxValue).toBe(2);
+    expect(heatmap.minValue).toBe(2);
     expect(heatmap.contributions[0][0]).toEqual([
       { name: 'a', status: 'starting' },
       { name: 'b', status: 'starting' },
@@ -49,7 +50,7 @@ describe('heatmap', () => {
   it('renders ascii with axis labels', () => {
     const ascii = renderAscii([Array(60).fill(0)]);
     const lines = ascii.split('\n');
-    expect(lines).toHaveLength(3);
+    expect(lines).toHaveLength(5);
     const expectedHeader =
       '    ' +
       Array.from({ length: 60 }, (_, m) =>
@@ -60,6 +61,10 @@ describe('heatmap', () => {
     expect(lines[2]).toBe(expectedHeader);
     expect(lines[1].startsWith('00 |')).toBe(true);
     expect(lines[1].endsWith('| 00')).toBe(true);
+    expect(lines[3]).toBe('');
+    expect(lines[4]).toBe(
+      'Density summary: Highest density: 0 runs. Lowest density: 0 runs.',
+    );
   });
   it('supports colors', () => {
     const row = Array(20).fill(0);
@@ -74,6 +79,16 @@ describe('heatmap', () => {
     const lines = ascii.split('\n');
     expect(lines[1].length).toBe(4 + 60 * 2 + 4);
     expect(lines[1].slice(4, -4)).toBe(' '.repeat(60 * 2));
+  });
+
+  it('renders ascii density summary from provided stats', () => {
+    const ascii = renderAscii([Array(60).fill(0)], false, {
+      maxValue: 12,
+      minValue: 3,
+    });
+    expect(ascii).toContain(
+      'Density summary: Highest density: 12 runs. Lowest density: 3 runs.',
+    );
   });
   it('renders jpeg image', () => {
     const matrix = [
@@ -224,6 +239,7 @@ describe('heatmap', () => {
     const heatmap = buildHeatmapData(jobs, true);
     const html = renderInteractiveHtml(heatmap);
     expect(html).toContain('https://www.npmjs.com/package/cron-ironer');
+    expect(html).toContain('https://github.com/brendtumi/cron-ironer');
     expect(html).toContain('data-starting="2"');
     expect(html).toContain('data-continuing="1"');
     const contributionMatches = [
@@ -243,7 +259,13 @@ describe('heatmap', () => {
       ]),
     );
     expect(html).toContain(
-      'Hover over a minute to inspect starting and continuing job contributions',
+      'Hover over a minute to inspect starting and continuing job contributions. Highest density: 2 runs. Lowest density: 1 run.',
+    );
+    expect(html).toContain(
+      'View cron-ironer on <a class="meta-link" href="https://www.npmjs.com/package/cron-ironer"',
+    );
+    expect(html).toContain(
+      '>Npm</a> or <a class="meta-link" href="https://github.com/brendtumi/cron-ironer"',
     );
   });
 

@@ -20,4 +20,5 @@ export interface HeatmapData {
   raw: Matrix;
   contributions: ContributionMatrix;
   maxValue: number;
+  minValue: number;
 }

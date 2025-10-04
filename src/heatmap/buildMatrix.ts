@@ -26,6 +26,7 @@ interface BuildResult {
   raw: Matrix;
   contributions?: ContributionMatrix;
   maxValue: number;
+  minValue: number;
 }
 
 function buildRawMatrix(jobs: Job[], options: BuildOptions): BuildResult {
@@ -77,13 +78,21 @@ function buildRawMatrix(jobs: Job[], options: BuildOptions): BuildResult {
   });
 
   let max = 0;
+  let min = Infinity;
   for (let h = 0; h < matrix.length; h += 1) {
     for (let m = 0; m < matrix[h].length; m += 1) {
-      if (matrix[h][m] > max) max = matrix[h][m];
+      const value = matrix[h][m];
+      if (value > max) max = value;
+      if (value > 0 && value < min) min = value;
     }
   }
 
-  return { raw: matrix, contributions, maxValue: max };
+  return {
+    raw: matrix,
+    contributions,
+    maxValue: max,
+    minValue: Number.isFinite(min) ? min : 0,
+  };
 }
 
 function normalizeMatrix(raw: Matrix, maxValue: number): Matrix {
@@ -101,7 +110,7 @@ export function buildHeatmapData(
   jobs: Job[],
   reflectDuration = false,
 ): HeatmapData {
-  const { raw, contributions, maxValue } = buildRawMatrix(jobs, {
+  const { raw, contributions, maxValue, minValue } = buildRawMatrix(jobs, {
     reflectDuration,
     collectContributions: true,
   });
@@ -112,6 +121,7 @@ export function buildHeatmapData(
     raw,
     contributions,
     maxValue,
+    minValue,
     matrix: normalizeMatrix(raw, maxValue),
   };
 }

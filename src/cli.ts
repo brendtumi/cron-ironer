@@ -101,8 +101,11 @@ function replaceExt(file: string, newExt: string): string {
   return path.join(dir, `${name}${newExt}`);
 }
 
-function writeAscii(matrix: number[][], suffix = '') {
-  const content = `${renderAscii(matrix)}\n`;
+function writeAscii(heatmap: HeatmapData, suffix = '') {
+  const content = `${renderAscii(heatmap.matrix, false, {
+    maxValue: heatmap.maxValue,
+    minValue: heatmap.minValue,
+  })}\n`;
   let finalSuffix = suffix;
   if (suggest) finalSuffix = `${finalSuffix}.suggested`;
   if (reflect) finalSuffix = `${finalSuffix}.reflect`;
@@ -148,7 +151,7 @@ if (suggest) {
   if (optimizer !== 'offset' && optimizer !== 'greedy') {
     program.error(`Unknown optimizer: ${optimizer}`);
   }
-  if (!outputImage) writeAscii(matrix, '.before');
+  if (!outputImage) writeAscii(heatmap, '.before');
   if (htmlOutput) writeHtml(heatmap, '.before');
   writeImage(matrix, '.before');
 
@@ -167,12 +170,12 @@ if (suggest) {
 
   const heatmapAfter = buildHeatmapData(suggested, reflect);
   const matrix2 = heatmapAfter.matrix;
-  if (!outputImage) writeAscii(matrix2, '.after');
+  if (!outputImage) writeAscii(heatmapAfter, '.after');
   if (htmlOutput) writeHtml(heatmapAfter, '.after');
   writeImage(matrix2, '.after');
 } else {
   if (outputImage) writeImage(matrix);
-  else writeAscii(matrix);
+  else writeAscii(heatmap);
   if (htmlOutput) writeHtml(heatmap);
 }
 

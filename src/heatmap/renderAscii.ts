@@ -8,7 +8,42 @@ const colors = {
   red: (s: string) => `\u001b[31m${s}\u001b[0m`,
 };
 
-export default function renderAscii(matrix: Matrix, useColor = false): string {
+interface DensitySummary {
+  maxValue?: number;
+  minValue?: number;
+}
+
+function computeSummaryFromMatrix(matrix: Matrix): DensitySummary {
+  let maxValue = 0;
+  let minValue = Infinity;
+  for (let h = 0; h < matrix.length; h += 1) {
+    for (let m = 0; m < (matrix[h]?.length ?? 0); m += 1) {
+      const value = matrix[h][m];
+      if (value > maxValue) maxValue = value;
+      if (value > 0 && value < minValue) minValue = value;
+    }
+  }
+  return {
+    maxValue,
+    minValue: Number.isFinite(minValue) ? minValue : 0,
+  };
+}
+
+function formatRuns(value: number | undefined): string {
+  const safeValue =
+    typeof value === 'number' && Number.isFinite(value) ? value : 0;
+  const label = safeValue === 1 ? 'run' : 'runs';
+  if (safeValue === 0) {
+    return '0 runs';
+  }
+  return `${safeValue} ${label}`;
+}
+
+export default function renderAscii(
+  matrix: Matrix,
+  useColor = false,
+  summary?: DensitySummary,
+): string {
   const cols = matrix[0]?.length ?? 0;
   const cellWidth = 2;
   const header =
@@ -35,5 +70,17 @@ export default function renderAscii(matrix: Matrix, useColor = false): string {
     return `${String(h).padStart(2, '0')} |${cells.join('')}| ${String(h).padStart(2, '0')}`;
   });
 
-  return [header, ...rows, header].join('\n');
+  const lines = [header, ...rows, header];
+
+  const densitySummary = summary ?? computeSummaryFromMatrix(matrix);
+  if (densitySummary) {
+    lines.push('');
+    lines.push(
+      `Density summary: Highest density: ${formatRuns(
+        densitySummary.maxValue,
+      )}. Lowest density: ${formatRuns(densitySummary.minValue)}.`,
+    );
+  }
+
+  return lines.join('\n');
 }
