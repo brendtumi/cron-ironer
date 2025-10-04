@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [1.2.0] - 2025-10-04
+
 ### Added
 
 - SVG and PNG export options for cron heatmaps via the `--image-format` flag.
