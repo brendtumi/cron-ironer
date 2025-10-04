@@ -23,7 +23,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "lint": "eslint . --ext .ts",
+    "lint": "npm run format && eslint . --ext .ts",
     "format": "prettier --write .",
     "test": "vitest run --coverage",
     "prepare": "npm run build",
