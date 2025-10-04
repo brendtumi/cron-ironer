@@ -15,10 +15,12 @@ Cron‑Ironer, a cli tool, that helps developers spread and de‑conflict cron j
 - Install deps: `npm install`
 - Execute example: `npm run dev -- test/resource/test-1.json --suggest --reflect-duration --image --optimizer greedy`
 
-## Testing & Code Quality
+## Testing, Code Quality and Documentation
 
 - Run tests: `npm test`
 - Run linter: `npm run lint`
+- Provide an example of using the new feature in the [README](./README.md) file.
+- Update documentation if any cli options are added or changed.
 
 ### Testing Guidelines
 
