@@ -1,60 +1,50 @@
 [
   {
     "name": "job_bd7892a0",
-    "description": "word228 word442 word423 word648 word268 word536",
     "schedule": "40 0 1 * *",
-    "estimation": 8442
+    "description": "word228 word442 word423 word648 word268 word536"
   },
   {
     "name": "job_3c13a828",
-    "schedule": "0 */2 * * *",
-    "estimation": 304
+    "schedule": "0 */2 * * *"
   },
   {
     "name": "job_d70d9e02",
-    "description": "word248 word878 word824 word371 word482 word816 word354 word807 word697 word615 word575 word862 word738",
     "schedule": "10,40 * * * *",
-    "estimation": 1799
+    "description": "word248 word878 word824 word371 word482 word816 word354 word807 word697 word615 word575 word862 word738"
   },
   {
     "name": "job_3f85db48",
-    "description": "word850 word673 word187 word860 word685 word902 word849 word688 word554 word904",
     "schedule": "5 * 24-31 * *",
-    "estimation": 769
+    "description": "word850 word673 word187 word860 word685 word902 word849 word688 word554 word904"
   },
   {
     "name": "job_2044d089",
-    "description": "word944 word154 word971 word556 word366 word491 word902",
-    "schedule": "0 2 * * *",
-    "estimation": 6908
+    "schedule": "0 13 * * *",
+    "description": "word944 word154 word971 word556 word366 word491 word902"
   },
   {
     "name": "job_b6776bf0",
-    "schedule": "0 0 * * 0",
-    "estimation": 1697
+    "schedule": "0 0 * * 0"
   },
   {
     "name": "job_47b0958c",
-    "description": "word852 word195 word432 word815 word608 word134 word101 word933 word750",
     "schedule": "0 * * * *",
-    "estimation": 1509
+    "description": "word852 word195 word432 word815 word608 word134 word101 word933 word750"
   },
   {
     "name": "job_625ccdff",
-    "description": "word935 word832 word772 word599 word638 word488 word753 word637 word288 word473 word286 word316 word448 word613 word383 word180 word712 word906",
-    "schedule": "0 4 * * *",
-    "estimation": 4221
+    "schedule": "0 2 * * *",
+    "description": "word935 word832 word772 word599 word638 word488 word753 word637 word288 word473 word286 word316 word448 word613 word383 word180 word712 word906"
   },
   {
     "name": "job_d91e91ec",
-    "description": "word543 word613 word866 word676 word802 word389",
     "schedule": "0 1 1 * *",
-    "estimation": 5347
+    "description": "word543 word613 word866 word676 word802 word389"
   },
   {
     "name": "job_6f9fba8f",
-    "description": "word204 word546 word568 word306 word977 word929 word426 word812 word891 word630 word612 word143",
-    "schedule": "0 1/2 * * *",
-    "estimation": 1365
+    "schedule": "0 */2 * * *",
+    "description": "word204 word546 word568 word306 word977 word929 word426 word812 word891 word630 word612 word143"
   }
 ]
