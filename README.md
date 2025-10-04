@@ -155,6 +155,10 @@ With the `greedy` optimizer, the schedule is more evenly distributed (10 Cron Jo
 
 ![Heatmap after optimization weighted by job duration_with_greedy](test/resource/test-4.after.suggested.reflect.greedy.jpg)
 
+#### Sample html output
+
+![Sample_html_output](docs/sample-html-output.png)
+
 ### Heatmap interpretation
 
 - Image heatmaps start at 1300 x 550 pixels and expand as needed.
