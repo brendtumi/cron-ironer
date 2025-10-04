@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { serializeCrontab, Job } from '../src';
+import { serializeCrontab, Job, SuggestedJob } from '../src';
 
 describe('serializeCrontab', () => {
   it('serializes jobs with and without descriptions correctly', () => {
@@ -19,5 +19,18 @@ describe('serializeCrontab', () => {
 
   it('returns empty string for empty job list', () => {
     expect(serializeCrontab([])).toBe('');
+  });
+
+  it('appends old schedule details when provided', () => {
+    const jobs: SuggestedJob[] = [
+      {
+        name: 'rotate-logs',
+        schedule: '5 0 * * *',
+        oldSchedule: '0 0 * * *',
+      },
+    ];
+    expect(serializeCrontab(jobs)).toBe(
+      '5 0 * * * rotate-logs # old schedule: 0 0 * * *',
+    );
   });
 });
