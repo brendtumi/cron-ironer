@@ -9,14 +9,11 @@
 
 ### Changed
 
-- Improved the interactive HTML heatmap accessibility with focusable cells and ARIA descriptions.
-- Interactive HTML heatmaps now break down starting versus continuing job runs and include a direct link to the npm package page.
 - CLI runs print the absolute paths of every generated artifact (heatmaps, HTML, suggestions) for easier discovery in automation logs.
 - The interactive HTML and ASCII heatmaps now summarize both the highest and lowest cron densities, and the HTML footer links to the npm and GitHub project pages.
 
 ### Fixed
 
-- Fixed the interactive HTML heatmap script escaping to avoid runtime syntax errors in browsers.
 - Prevented the CLI from generating before/after heatmap images during suggestion runs unless `--image` is explicitly set.
 
 ## [1.1.0] - 2025-10-03
