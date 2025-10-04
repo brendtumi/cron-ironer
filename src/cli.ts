@@ -15,6 +15,7 @@ import {
   suggestSpread,
   suggestAggressiveSpread,
   Job,
+  SuggestedJob,
   HeatmapData,
   ImageFormat,
 } from './index';
@@ -101,6 +102,25 @@ function replaceExt(file: string, newExt: string): string {
   return path.join(dir, `${name}${newExt}`);
 }
 
+function buildSuggestionOutput(
+  original: Job[],
+  suggestedJobs: Job[],
+): SuggestedJob[] {
+  return suggestedJobs.map((job, index) => {
+    const originalJob = original[index];
+    const suggestion: SuggestedJob = {
+      name: job.name,
+      schedule: job.schedule,
+    };
+    const description = job.description || originalJob?.description;
+    if (description) suggestion.description = description;
+    if (originalJob && originalJob.schedule !== job.schedule) {
+      suggestion.oldSchedule = originalJob.schedule;
+    }
+    return suggestion;
+  });
+}
+
 function writeAscii(heatmap: HeatmapData, suffix = '') {
   const content = `${renderAscii(heatmap.matrix, false, {
     maxValue: heatmap.maxValue,
@@ -159,11 +179,12 @@ if (suggest) {
     optimizer === 'greedy'
       ? suggestAggressiveSpread(jobs)
       : suggestSpread(jobs);
+  const suggestionOutput = buildSuggestionOutput(jobs, suggested);
   let suggestedContent = '';
-  if (format === 'yaml') suggestedContent = yaml.stringify(suggested);
+  if (format === 'yaml') suggestedContent = yaml.stringify(suggestionOutput);
   else if (format === 'json')
-    suggestedContent = `${JSON.stringify(suggested, null, 2)}\n`;
-  else suggestedContent = `${serializeCrontab(suggested)}\n`;
+    suggestedContent = `${JSON.stringify(suggestionOutput, null, 2)}\n`;
+  else suggestedContent = `${serializeCrontab(suggestionOutput)}\n`;
   const suggestionPath = addSuffix(inputFile, '.suggested');
   fs.writeFileSync(suggestionPath, suggestedContent);
   recordGenerated(suggestionPath);

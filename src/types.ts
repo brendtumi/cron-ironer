@@ -6,6 +6,13 @@ export interface Job {
   keepTime?: boolean;
 }
 
+export interface SuggestedJob {
+  name: string;
+  schedule: string;
+  description?: string;
+  oldSchedule?: string;
+}
+
 export type Matrix = number[][]; // 24 x 60
 
 export interface HeatmapContribution {

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Sanitised suggestion outputs to omit estimation/keepTime fields and include `oldSchedule` metadata when cron timings shift.
+
 ## [1.2.0] - 2025-10-04
 
 ### Added
