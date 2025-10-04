@@ -17,6 +17,7 @@
 ### Fixed
 
 - Fixed the interactive HTML heatmap script escaping to avoid runtime syntax errors in browsers.
+- Prevented the CLI from generating before/after heatmap images during suggestion runs unless `--image` is explicitly set.
 
 ## [1.1.0] - 2025-10-03
 

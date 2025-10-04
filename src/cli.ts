@@ -153,7 +153,7 @@ if (suggest) {
   }
   if (!outputImage) writeAscii(heatmap, '.before');
   if (htmlOutput) writeHtml(heatmap, '.before');
-  writeImage(matrix, '.before');
+  if (outputImage) writeImage(matrix, '.before');
 
   const suggested =
     optimizer === 'greedy'
@@ -172,7 +172,7 @@ if (suggest) {
   const matrix2 = heatmapAfter.matrix;
   if (!outputImage) writeAscii(heatmapAfter, '.after');
   if (htmlOutput) writeHtml(heatmapAfter, '.after');
-  writeImage(matrix2, '.after');
+  if (outputImage) writeImage(matrix2, '.after');
 } else {
   if (outputImage) writeImage(matrix);
   else writeAscii(heatmap);
