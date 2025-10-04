@@ -21,6 +21,7 @@ Cron‑Ironer, a cli tool, that helps developers spread and de‑conflict cron j
 - Run linter: `npm run lint`
 
 ### Testing Guidelines
+
 - Always work from within the package directory when running tests
 - Mock all external dependencies in unit tests
 
