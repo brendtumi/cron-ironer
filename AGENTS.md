@@ -2,7 +2,7 @@
 
 ## Purpose & Scope
 
-Cron‑Ironer, a cli tool, that helps developers spread and de‑conflict cron jobs across time, detect bursts, and generate visual heatmaps & plans.
+Cron‑Ironer, a cli tool that helps developers spread and de‑conflict cron jobs across time, detect bursts, and generate visual heatmaps and plans.
 
 ### Key goals
 
@@ -29,7 +29,7 @@ Cron‑Ironer, a cli tool, that helps developers spread and de‑conflict cron j
 
 ## Pull Requests
 
-- Create an entry in the [CHANGELOG's Unreleased section](./CHANGELOG.md) for any changes you make with following types of changes
+- Create an entry in the [CHANGELOG's Unreleased section](./CHANGELOG.md) for any changes you make with the following types of changes
   - `Added` for new features.
   - `Changed` for changes in existing functionality.
   - `Deprecated` for soon-to-be removed features.
