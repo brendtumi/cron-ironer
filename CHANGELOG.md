@@ -7,6 +7,10 @@
 - SVG and PNG export options for cron heatmaps via the `--image-format` flag.
 - Interactive HTML heatmap generation with per-minute job contribution tooltips.
 
+### Changed
+
+- Improved the interactive HTML heatmap accessibility with focusable cells and ARIA descriptions.
+
 ## [1.1.0] - 2025-10-03
 
 ### Added

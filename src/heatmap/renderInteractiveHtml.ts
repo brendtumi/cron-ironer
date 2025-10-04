@@ -21,6 +21,29 @@ function sanitizeNumber(value: number): string {
   return Number.isFinite(value) ? String(value) : '0';
 }
 
+function escapeAttribute(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function buildAriaLabel(
+  hour: string,
+  minute: string,
+  count: number,
+  jobs: string[],
+): string {
+  const runsLabel = count === 1 ? 'run' : 'runs';
+  const base = `${hour}:${minute} has ${count} ${runsLabel}.`;
+  if (jobs.length === 0) {
+    return `${base} No jobs scheduled.`;
+  }
+  return `${base} Jobs: ${jobs.join(', ')}.`;
+}
+
 export default function renderInteractiveHtml(data: HeatmapData): string {
   const { matrix, raw, contributions, maxValue } = data;
   const rows = matrix.length;
@@ -53,8 +76,11 @@ export default function renderInteractiveHtml(data: HeatmapData): string {
       const minuteLabel = String(m).padStart(2, '0');
       const x = leftMargin + m * pitch;
       const y = topMargin + h * pitch;
+      const ariaLabel = escapeAttribute(
+        buildAriaLabel(hourLabel, minuteLabel, rawValue, jobNames),
+      );
       cells.push(
-        `<rect class="cell" x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" fill="${color}" data-hour="${hourLabel}" data-minute="${minuteLabel}" data-count="${sanitizeNumber(rawValue)}" data-jobs="${encodedJobs}" />`,
+        `<rect class="cell" tabindex="0" x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" fill="${color}" data-hour="${hourLabel}" data-minute="${minuteLabel}" data-count="${sanitizeNumber(rawValue)}" data-jobs="${encodedJobs}" aria-label="${ariaLabel}" />`,
       );
     }
   }
@@ -125,36 +151,58 @@ export default function renderInteractiveHtml(data: HeatmapData): string {
     );
   }
 
+  function readJobs(cell) {
+    const jobsAttr = cell.getAttribute('data-jobs') || encodeURIComponent('[]');
+    try {
+      const parsed = JSON.parse(decodeURIComponent(jobsAttr));
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (err) {
+      return [];
+    }
+  }
+
+  function showTooltip(cell, event) {
+    const hour = cell.getAttribute('data-hour') || '00';
+    const minute = cell.getAttribute('data-minute') || '00';
+    const count = Number(cell.getAttribute('data-count') || '0');
+    const jobs = readJobs(cell);
+    const runsLabel = count === 1 ? 'run' : 'runs';
+    tooltip.innerHTML =
+      '<strong>' +
+      escapeHtml(hour + ':' + minute) +
+      '</strong><br />' +
+      '<span>' +
+      escapeHtml(count + ' ' + runsLabel) +
+      '</span>' +
+      renderJobs(jobs);
+    tooltip.style.opacity = '1';
+    if (event && typeof event.clientX === 'number' && typeof event.clientY === 'number') {
+      updatePosition(event);
+    } else {
+      const rect = cell.getBoundingClientRect();
+      tooltip.style.left = String(rect.right + window.scrollX + OFFSET) + 'px';
+      tooltip.style.top = String(rect.top + window.scrollY + OFFSET) + 'px';
+    }
+  }
+
+  function hideTooltip() {
+    tooltip.style.opacity = '0';
+  }
+
   document.querySelectorAll('rect.cell').forEach((cell) => {
     cell.addEventListener('pointerenter', (event) => {
-      const hour = cell.getAttribute('data-hour') || '00';
-      const minute = cell.getAttribute('data-minute') || '00';
-      const count = Number(cell.getAttribute('data-count') || '0');
-      const jobsAttr = cell.getAttribute('data-jobs') || encodeURIComponent('[]');
-      let jobs = [];
-      try {
-        jobs = JSON.parse(decodeURIComponent(jobsAttr));
-      } catch (err) {
-        jobs = [];
-      }
-      const runsLabel = count === 1 ? 'run' : 'runs';
-      tooltip.innerHTML =
-        '<strong>' +
-        escapeHtml(hour + ':' + minute) +
-        '</strong><br />' +
-        '<span>' +
-        escapeHtml(count + ' ' + runsLabel) +
-        '</span>' +
-        renderJobs(jobs);
-      tooltip.style.opacity = '1';
-      updatePosition(event);
+      showTooltip(cell, event);
     });
 
     cell.addEventListener('pointermove', updatePosition);
 
-    cell.addEventListener('pointerleave', () => {
-      tooltip.style.opacity = '0';
+    cell.addEventListener('pointerleave', hideTooltip);
+
+    cell.addEventListener('focus', () => {
+      showTooltip(cell);
     });
+
+    cell.addEventListener('blur', hideTooltip);
   });
 })();`;
 
@@ -203,9 +251,13 @@ export default function renderInteractiveHtml(data: HeatmapData): string {
       rect.cell {
         cursor: pointer;
       }
-      rect.cell:hover {
+      rect.cell:hover,
+      rect.cell:focus-visible {
         stroke: #111827;
         stroke-width: 0.75;
+      }
+      rect.cell:focus {
+        outline: none;
       }
       .legend {
         display: flex;

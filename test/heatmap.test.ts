@@ -239,5 +239,7 @@ describe('heatmap', () => {
     expect(html).toContain('data-hour="00"');
     expect(html).toContain('Hover over a minute');
     expect(html).toContain('data-jobs=');
+    expect(html).toContain('tabindex="0"');
+    expect(html).toContain('aria-label="00:00 has 1 run. Jobs: jobA."');
   });
 });

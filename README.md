@@ -162,6 +162,7 @@ With the `greedy` optimizer, the schedule is more evenly distributed (10 Cron Jo
 - The Y-axis shows hours (00-23); the X-axis lists minutes (00-59) in 5-minute increments.
 - ASCII heatmaps dedicate two characters per minute and use shading characters (`█`, `▓`, `▒`, `░`) to indicate cron job density.
 - Use `--html` to export an interactive HTML heatmap with hoverable cells listing contributing job names and raw counts.
+- Keyboard users can tab through the interactive HTML heatmap; focused cells announce counts and contributing jobs via accessible tooltips.
 
 ## License
 
