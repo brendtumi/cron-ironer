@@ -13,6 +13,10 @@
 - Interactive HTML heatmaps now break down starting versus continuing job runs and include a direct link to the npm package page.
 - CLI runs print the absolute paths of every generated artifact (heatmaps, HTML, suggestions) for easier discovery in automation logs.
 
+### Fixed
+
+- Fixed the interactive HTML heatmap script escaping to avoid runtime syntax errors in browsers.
+
 ## [1.1.0] - 2025-10-03
 
 ### Added
