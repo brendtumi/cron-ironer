@@ -9,6 +9,7 @@
 ### Security
 
 - Replaced the HTML section ID sanitizer with a linear-time implementation to avoid potential performance issues from complex regular expressions.
+- Hardened crontab parser comment handling by replacing greedy regular expressions with linear-time slicing.
 
 ## [1.2.1] - 2025-10-05
 
