@@ -99,11 +99,40 @@ function escapeHtmlContent(value: string): string {
 }
 
 function sanitizeId(value: string, fallback: string): string {
-  const normalized = value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+/, '')
-    .replace(/-+$/, '');
+  if (!value) {
+    return fallback;
+  }
+
+  const lower = value.toLowerCase();
+  const buffer: string[] = [];
+  let previousWasDash = false;
+
+  for (let i = 0; i < lower.length; i += 1) {
+    const char = lower[i];
+    const code = char.charCodeAt(0);
+    const isAlpha = code >= 97 && code <= 122; // a-z
+    const isDigit = code >= 48 && code <= 57; // 0-9
+
+    if (isAlpha || isDigit) {
+      buffer.push(char);
+      previousWasDash = false;
+    } else if (!previousWasDash) {
+      buffer.push('-');
+      previousWasDash = true;
+    }
+  }
+
+  let start = 0;
+  while (start < buffer.length && buffer[start] === '-') {
+    start += 1;
+  }
+
+  let end = buffer.length - 1;
+  while (end >= start && buffer[end] === '-') {
+    end -= 1;
+  }
+
+  const normalized = start <= end ? buffer.slice(start, end + 1).join('') : '';
   return normalized || fallback;
 }
 
