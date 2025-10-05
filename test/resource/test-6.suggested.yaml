@@ -4,7 +4,7 @@
 - name: job_cde1deba
   schedule: 3/5 * * * *
   description: word849 word576 word840 word355 word807
-  oldSchedule: "*/5 * * * *"
+  oldSchedule: '*/5 * * * *'
 - name: job_c8260096
   schedule: 0 * * * *
   description: word331 word903 word513 word196 word518 word724
@@ -18,7 +18,7 @@
   schedule: 4/5 * * * *
   description: word123 word900 word874 word445 word412 word720 word504 word225
     word135 word522
-  oldSchedule: "*/5 * * * *"
+  oldSchedule: '*/5 * * * *'
 - name: job_242ccb7e
   schedule: 50 */12 * * *
   description: word506 word648 word646 word132 word661 word328 word782 word437

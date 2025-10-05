@@ -12,6 +12,7 @@ import {
   renderAscii,
   renderImage,
   renderInteractiveHtml,
+  RenderInteractiveHtmlSection,
   suggestSpread,
   suggestAggressiveSpread,
   Job,
@@ -152,14 +153,24 @@ function writeImage(matrix: number[][], suffix = '') {
   recordGenerated(target);
 }
 
-function writeHtml(heatmap: HeatmapData, suffix = '') {
+function buildHtmlOptionsUsed(): string[] {
+  const used: string[] = ['--html'];
+  if (suggest) {
+    used.push('--suggest');
+    used.push(`--optimizer ${optimizer}`);
+  }
+  if (reflect) used.push('--reflect-duration');
+  return used;
+}
+
+function writeHtml(sections: RenderInteractiveHtmlSection[]) {
+  if (!sections.length) return;
   const base = outFile || inputFile;
-  let finalSuffix = suffix;
-  if (suggest) finalSuffix = `${finalSuffix}.suggested`;
-  if (reflect) finalSuffix = `${finalSuffix}.reflect`;
-  if (optimizer) finalSuffix = `${finalSuffix}.${optimizer}`;
-  const target = addSuffix(replaceExt(base, '.html'), finalSuffix);
-  const content = renderInteractiveHtml(heatmap);
+  const target = addSuffix(replaceExt(base, '.html'), '.heatmap');
+  const content = renderInteractiveHtml(sections[0].heatmap, {
+    sections,
+    optionsUsed: buildHtmlOptionsUsed(),
+  });
   fs.writeFileSync(target, content, 'utf8');
   recordGenerated(target);
 }
@@ -171,8 +182,16 @@ if (suggest) {
   if (optimizer !== 'offset' && optimizer !== 'greedy') {
     program.error(`Unknown optimizer: ${optimizer}`);
   }
+  const htmlSections: RenderInteractiveHtmlSection[] = htmlOutput
+    ? [
+        {
+          id: 'before',
+          title: 'Before suggestions',
+          heatmap,
+        },
+      ]
+    : [];
   if (!outputImage) writeAscii(heatmap, '.before');
-  if (htmlOutput) writeHtml(heatmap, '.before');
   if (outputImage) writeImage(matrix, '.before');
 
   const suggested =
@@ -192,12 +211,26 @@ if (suggest) {
   const heatmapAfter = buildHeatmapData(suggested, reflect);
   const matrix2 = heatmapAfter.matrix;
   if (!outputImage) writeAscii(heatmapAfter, '.after');
-  if (htmlOutput) writeHtml(heatmapAfter, '.after');
   if (outputImage) writeImage(matrix2, '.after');
+  if (htmlOutput) {
+    htmlSections.push({
+      id: 'after',
+      title: 'After suggestions',
+      heatmap: heatmapAfter,
+    });
+    writeHtml(htmlSections);
+  }
 } else {
   if (outputImage) writeImage(matrix);
   else writeAscii(heatmap);
-  if (htmlOutput) writeHtml(heatmap);
+  if (htmlOutput)
+    writeHtml([
+      {
+        id: 'schedule',
+        title: 'Schedule overview',
+        heatmap,
+      },
+    ]);
 }
 
 if (generatedFiles.length > 0) {

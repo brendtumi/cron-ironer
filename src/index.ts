@@ -10,6 +10,10 @@ export { default as renderAscii } from './heatmap/renderAscii';
 export { default as renderImage } from './heatmap/renderImage';
 export type { ImageFormat, RenderImageOptions } from './heatmap/renderImage';
 export { default as renderInteractiveHtml } from './heatmap/renderInteractiveHtml';
+export type {
+  RenderInteractiveHtmlOptions,
+  RenderInteractiveHtmlSection,
+} from './heatmap/renderInteractiveHtml';
 export { default as suggestSpread } from './optimizer/suggestSpread';
 export { default as suggestAggressiveSpread } from './optimizer/suggestAggressiveSpread';
 export * from './types';
