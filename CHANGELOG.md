@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [1.2.2] - 2025-10-05
+
 ### Changed
 
 - The `--html` output now produces a single `.heatmap.html` file with before/after sections and a summary of the CLI options used.
@@ -9,7 +11,7 @@
 ### Security
 
 - Replaced the HTML section ID sanitizer with a linear-time implementation to avoid potential performance issues from complex regular expressions.
-- Hardened crontab parser comment handling by replacing greedy regular expressions with linear-time slicing.
+- Hardened crontab parser comment handling by replacing greedy regular expressions with linear-time slicing. [#4](https://github.com/brendtumi/cron-ironer/security/code-scanning/4)
 
 ## [1.2.1] - 2025-10-05
 
