@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- The `--html` output now produces a single `.heatmap.html` file with before/after sections and a summary of the CLI options used.
+
 ## [1.2.1] - 2025-10-05
 
 ### Changed

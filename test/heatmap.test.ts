@@ -262,6 +262,9 @@ describe('heatmap', () => {
       'Hover over a minute to inspect starting and continuing job contributions. Highest density: 2 runs. Lowest density: 1 run.',
     );
     expect(html).toContain(
+      '<h2 id="heatmap-heading-schedule-overview">Schedule overview</h2>',
+    );
+    expect(html).toContain(
       'View cron-ironer on <a class="meta-link" href="https://www.npmjs.com/package/cron-ironer"',
     );
     expect(html).toContain(
@@ -305,11 +308,41 @@ describe('heatmap', () => {
     const heatmap = buildHeatmapData(jobs);
     const html = renderInteractiveHtml(heatmap);
     expect(html).toContain('Cron Ironer Heatmap');
+    expect(html).toContain(
+      '<h2 id="heatmap-heading-schedule-overview">Schedule overview</h2>',
+    );
     expect(html).toContain('data-hour="00"');
     expect(html).toContain('Hover over a minute');
     expect(html).toContain('data-contributions=');
     expect(html).toContain('tabindex="0"');
     expect(html).toContain('data-starting="1"');
     expect(html).toContain('aria-label="00:00 has 1 run. Starting run: jobA."');
+  });
+
+  it('renders multiple html sections with options list', () => {
+    const jobs: Job[] = [
+      { name: 'jobA', schedule: '0 0 * * *' },
+      { name: 'jobB', schedule: '15 3 * * *' },
+    ];
+    const baseHeatmap = buildHeatmapData(jobs);
+    const html = renderInteractiveHtml(baseHeatmap, {
+      sections: [
+        { id: 'before', title: 'Before', heatmap: baseHeatmap },
+        { id: 'after', title: 'After', heatmap: baseHeatmap },
+      ],
+      optionsUsed: ['--suggest', '--reflect-duration', '--html'],
+    });
+    expect(html).toContain('<h2 id="heatmap-heading-before">Before</h2>');
+    expect(html).toContain('<h2 id="heatmap-heading-after">After</h2>');
+    expect(html).toContain('Options used:');
+    expect(html).toContain('<code>--suggest</code>');
+    expect(html).toContain('<code>--reflect-duration</code>');
+    expect(html).toContain('<code>--html</code>');
+    expect(html).toContain(
+      'aria-labelledby="heatmap-title-before heatmap-desc-before"',
+    );
+    expect(html).toContain(
+      'aria-labelledby="heatmap-title-after heatmap-desc-after"',
+    );
   });
 });
